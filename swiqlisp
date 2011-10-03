@@ -1,0 +1,140 @@
+#!/bin/bash
+
+# Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
+#
+# This file is part of swiQlisp — site-wide Quicklisp.
+#
+# swiQlisp is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# swiQlisp is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# swiQlisp.  If not, see <http://www.gnu.org/licenses/>
+
+
+# Commentary:
+#
+#  This script (swiqlisp) is the main tool for managing your site-wide
+#  installation of Quicklisp.
+#
+#  Use the script swiqlisp-install to install Quicklisp site-wide in the first
+#  instance.
+
+
+usage () {
+    echo -e "\n Usage: sudo ./swiqlisp.sh <action> [<project-or-system>] \
+[<lisp>]
+
+ Valid actions:
+
+  projects systems install-{project|system} remove-{project|system} system-apropos
+
+ Default lisp: SBCL\n"; }
+
+if test -z "$1" -o "$1" = "-h" -o "$1" = "--help"; then
+    usage; exit 1
+fi
+
+if test \( "${1:0:6}" = "instal" -o "${1:0:6}" = "remove" \) -a -z "$2"; then
+    usage; exit 1
+fi
+
+
+ACTION=$1; OBJECT=$2; LISP=$3
+
+# default lisp implementation
+[ -z "$3" ] && LISP=/usr/bin/sbcl
+
+# invocations
+# test for $LISP
+! [ -x "$LISP" ] && echo "$LISP not found. Aborting. (Tip: use absolute paths)." \
+    && exit 1
+
+case $LISP in
+    sbcl | /bin/sbcl | /usr/bin/sbcl | /usr/local/bin/sbcl )
+	INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
+--disable-debugger --no-sysinit --no-userinit --noprint \
+--load quicklisp/setup --load swiqlisp"
+	load=--load; eval=--eval; quit=--quit;;
+    # add lisp implementation invocation strings here
+ * )
+	echo "Unknown lisp implementation; $LISP. Aborting." && exit 1;;
+esac
+
+SYSUSR=swiqlisp
+SYSUSR_HOME=/usr/share/common-lisp/$SYSUSR
+SU=/bin/su
+SWIQLISP='$SU -c "$INVOC" $SYSUSR'
+
+###############
+# function defs
+
+rotate_installed_systems_files () {
+    rm -f installed-systems.new
+    mv -f installed-systems.current installed-systems.old
+    cat quicklisp/dists/quicklisp/installed/systems/*.txt | sort \
+	> installed-systems.current
+    grep -v -f installed-systems.old installed-systems.current \
+	> installed-systems.new; }
+
+write_links_to_additional_system_files () {
+    for system in $(cat installed-systems.new); do
+	ln -s  ../quicklisp/$system installed-systems/
+    done; }
+
+additional_systems_report () {
+    echo "The following new ASDF systems are now available:
+"
+    for system in $(cat installed-systems.new); do
+	echo " $(basename $system .asd)"
+    done; echo; }
+
+# API function defs
+
+list () {
+    EVAL1="'(list-installed-$1)'"
+    EVAL2="'(list-available-$1)'"
+    INVOC="$INVOC $eval $EVAL1 $eval $EVAL2 $quit"
+    eval $SWIQLISP; }
+
+install () {
+    EVAL="'(install-$1 \"$OBJECT\")'"
+    ERRLOG="/tmp/install-${1}_${OBJECT}_error.log"
+    INVOC="$INVOC $eval $EVAL $quit 2>$ERRLOG"
+    eval $SWIQLISP
+    if [ -s $ERRLOG ]; then
+	echo -e "\n\nAn error occurred. See $ERRLOG for more information.\n"
+	exit 1
+    else # success
+	rm $ERRLOG # empty
+	rotate_installed_systems_files
+	[ -s installed-systems.new ] && \
+	    write_links_to_additional_system_files && \
+	    additional_systems_report
+    fi; }
+
+system_apropos () {
+    EVAL="'(swiqlisp-apropos \"$OBJECT\")'"
+    INVOC="$INVOC $eval $EVAL $quit"
+    eval $SWIQLISP; }
+
+###########
+# top level
+
+cd $SYSUSR_HOME
+
+case $ACTION in
+           projects) list projects;;
+            systems) list systems;;
+    install-project) install project;;
+     install-system) install system;;
+     remove-project) remove project;;
+      remove-system) remove system;;
+     system-apropos) system_apropos;;
+                  *) echo "Unknown action.  Aborting." && exit 1;;
+esac

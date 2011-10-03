@@ -1,0 +1,56 @@
+
+			 swiQlisp — site-wide Quicklisp
+			 ==============================
+
+Tools for installing Quicklisp site-wide and then managing that installation
+(using lisp implementation of choice).
+
+Works by creating a system user 'swiqlisp' whose home directory is in a
+site-wide location (currently /usr/share/common-lisp/swiqlisp) and then running
+lisp as that system user. Symbolic links pointing to system definition files are
+then created under a single directory; ~swiqlisp/installed-systems/.
+
+Unprivileged users can then use ASDF:LOAD-SYSTEM to load these site-wide
+installed Quicklisp libraries by simply adding ~swiqlisp/installed-systems/ to
+their ASDF:*CENTRAL-REGISTRY*.
+
+
+INSTALL
+-------
+
+ $ sudo ./swiqlisp-install
+
+
+USAGE
+-----
+
+ $ sudo ./swiqlisp <action> [<project-or-system>] [<lisp>]
+
+Actions implemented so far:
+
+ projects systems install-{project|system} system-apropos
+
+Default lisp: sbcl
+
+
+TODO
+----
+
+ - A configure script for setting swiqlisp home directory location & generating
+   a runtime configuration file (which should include: choice of lisp... and
+   what else?)
+
+ - As well as installing Quicklisp under ~swiqlisp, swiqlisp-install should put:
+
+    swiqlisp      under /usr/sbin/
+    swiqlisp.rc   under /etc/
+
+ - Should swiqlisp-install also add the ASDF stanza to /etc/sbclrc? Debian's sbcl
+   uses /etc/sbcl.rc.  What about other lisps?
+
+ - Invocations for lisps other than sbcl
+
+ - New commands: update-dist, update-client (is self-update a better name?)
+                 init-file-stanza
+
+ - Site-wide SLIME?

@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
+#
+# This file is part of swiQlisp — site-wide Quicklisp.
+#
+# swiQlisp is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# swiQlisp is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# swiQlisp.  If not, see <http://www.gnu.org/licenses/>
+
+
+# Commentary:
+#
+#  This script (swiqlisp-install) is the site-wide Quicklisp installation tool,
+#  typically only used once.
+#
+#  Use the script swiqlisp to manage your site-wide Quicklisp installation.
+
+
+usage () {
+    echo -e "\n Usage: sudo swiqlisp-install.sh [<lisp>]
+
+ Default lisp: SBCL\n"; }
+
+if test "$1" = "-h" -o "$1" = "--help"; then usage; exit 1; fi
+if test $(id -u) -ne 0; then usage; exit 1; fi
+
+LISP=$1
+
+# default lisp implementation
+if test -z "$LISP"; then LISP=/usr/bin/sbcl; fi
+
+# test for $LISP
+if test ! -x "$LISP"; then
+    echo -e "\n$LISP not found. Aborting. (Tip: use absolute paths).\n"
+    exit 1
+fi
+
+# invocation strings
+case $LISP in
+    sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
+	INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
+--disable-debugger --no-sysinit --no-userinit --noprint"
+	load=--load; eval=--eval; quit=--quit;;
+    # add lisp implementation invocation strings here
+    * )
+	echo -e "\nUnknown lisp implementation; $LISP. Aborting.\n" && exit 1 ;;
+esac
+
+SYSUSR=swiqlisp
+SYSUSR_HOME=/usr/share/common-lisp/$SYSUSR
+SU=/bin/su
+SWIQLISP='$SU -c "$INVOC" $SYSUSR'
+
+# create system user (suppressing the warning emitted if user exists)
+adduser --quiet --system --home $SYSUSR_HOME \
+        --shell /bin/sh --disabled-login $SYSUSR
+
+# check for system user home
+if test ! -d $SYSUSR_HOME; then
+    echo -e "\nDirectory $SYSUSR_HOME not found.  Aborting.\n"
+    exit 1 1
+fi
+
+# force copy to allow for updates
+cp -f swiqlisp.lisp $SYSUSR_HOME
+
+cd $SYSUSR_HOME
+# ------------------------------------------------------------------------------
+# in $SYSUSR_HOME
+
+# fetch Quicklisp quickstart file
+wget -O quicklisp.lisp http://beta.quicklisp.org/quicklisp.lisp
+
+# setup installed-systems files
+touch installed-systems.current
+touch installed-systems.new
+touch installed-systems.old
+
+# setup installed-systems dir
+mkdir -p installed-systems
+
+if test -d quicklisp; then
+    echo -e "\nSite-wide Quicklisp is already installed.  Aborting.\n"
+    exit 1
+fi
+
+# install Quicklisp
+LOAD="quicklisp.lisp"
+EVAL="'(quicklisp-quickstart:install)'"
+ERRLOG="/tmp/swiqlisp-setup_error.log"
+INVOC="$INVOC $load $LOAD $eval $EVAL $quit 2>$ERRLOG"
+eval $SWIQLISP
+
+# check for errors
+if test -s $ERRLOG; then
+    echo -e "\n\nAn error occurred.  See $ERRLOG for details.\n"
+else # success
+    rm $ERRLOG # empty
+    rm quicklisp.lisp
+    echo -e "Site-wide Quicklisp installed under $SYSUSR_HOME/.\n"
+fi;
