@@ -45,10 +45,14 @@ TODO
     swiqlisp      under /usr/sbin/
     swiqlisp.rc   under /etc/
 
+ - Actually implement remove-{project|system}.
+
+ - Provide an uninstallation script; swiqlisp-uninstall.
+
  - Should swiqlisp-install also add the ASDF stanza to /etc/sbclrc? Debian's sbcl
    uses /etc/sbcl.rc.  What about other lisps?
 
- - Invocations for lisps other than sbcl
+ - Invocations for lisps other than sbcl.
 
  - New commands: update-dist, update-client (is self-update a better name?)
                  init-file-stanza
