@@ -69,7 +69,7 @@
           (let ((installed-releases (installed-releases d)))
             (multiple-value-bind (leftcol midcol rightcol stragglers)
                 (split-list installed-releases)
-              (format t "~%~d projects installed from distribution: ~a~%~%"
+              (format t "~%~d project~:p installed from distribution: ~a~%~%"
                       (length installed-releases) (name d))
               (write-threes leftcol midcol rightcol)
               (when stragglers (write-stragglers stragglers))))
@@ -86,7 +86,7 @@
                              provided-releases)))
             (multiple-value-bind (leftcol midcol rightcol stragglers)
                 (split-list available-releases)
-              (format t "~%~d other projects available from distribution: ~a~%~%"
+              (format t "~%~d other project~:p available from distribution: ~a~%~%"
                       (length available-releases) (name d))
               (write-threes leftcol midcol rightcol)
               (when stragglers (write-stragglers stragglers))))
@@ -99,7 +99,7 @@
           (let ((installed-systems (installed-systems d)))
             (multiple-value-bind (leftcol midcol rightcol stragglers)
                 (split-list installed-systems)
-              (format t "~%~d systems installed from distribution: ~a~%~%"
+              (format t "~%~d system~:p installed from distribution: ~a~%~%"
                       (length installed-systems) (name d))
               (write-threes leftcol midcol rightcol)
               (when stragglers (write-stragglers stragglers))))
@@ -116,7 +116,7 @@
                              provided-systems)))
             (multiple-value-bind (leftcol midcol rightcol stragglers)
                 (split-list available-systems)
-              (format t "~%~d other systems available from distribution: ~a~%~%"
+              (format t "~%~d other system~:p available from distribution: ~a~%~%"
                       (length available-systems) (name d))
               (write-threes leftcol midcol rightcol)
               (when stragglers (write-stragglers stragglers))))
@@ -131,7 +131,7 @@
                (push system matches))))
       (mapc #'matcher (provided-systems t))
       (when matches
-        (format t "~%~d system matches found:~%~%" (length matches))
+        (format t "~%~d system matche~:p found:~%~%" (length matches))
         (multiple-value-bind (leftcol midcol rightcol stragglers)
             (split-list (reverse matches))
           (write-threes leftcol midcol rightcol)
