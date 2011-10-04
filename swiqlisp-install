@@ -24,16 +24,22 @@
 #
 #  Use the script swiqlisp to manage your site-wide Quicklisp installation.
 
+SYSUSR=swiqlisp
+SYSUSR_HOME=/usr/share/common-lisp/$SYSUSR
+SU=/bin/su
+SWIQLISP_INSTALL='$SU -c "$INVOC" $SYSUSR'
 
+LISP=$1
+
+# usage & argument sanity checks
 usage () {
-    echo -e "\n Usage: sudo swiqlisp-install.sh [<lisp>]
+    echo -e "\n Usage: sudo swiqlisp-install [<lisp>]
 
  Default lisp: SBCL\n"; }
 
-if test "$1" = "-h" -o "$1" = "--help"; then usage; exit 1; fi
-if test $(id -u) -ne 0; then usage; exit 1; fi
+if test "$LISP" = "-h" -o "$1" = "--help"; then usage; exit 1; fi
 
-LISP=$1
+if test $(id -u) -ne 0; then usage; exit 1; fi
 
 # default lisp implementation
 if test -z "$LISP"; then LISP=/usr/bin/sbcl; fi
@@ -46,19 +52,17 @@ fi
 
 # invocation strings
 case $LISP in
+
     sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
 	INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
 --disable-debugger --no-sysinit --no-userinit --noprint"
 	load=--load; eval=--eval; quit=--quit;;
+
     # add lisp implementation invocation strings here
+
     * )
 	echo -e "\nUnknown lisp implementation; $LISP. Aborting.\n" && exit 1 ;;
 esac
-
-SYSUSR=swiqlisp
-SYSUSR_HOME=/usr/share/common-lisp/$SYSUSR
-SU=/bin/su
-SWIQLISP='$SU -c "$INVOC" $SYSUSR'
 
 # create system user (suppressing the warning emitted if user exists)
 adduser --quiet --system --home $SYSUSR_HOME \
@@ -98,7 +102,7 @@ LOAD="quicklisp.lisp"
 EVAL="'(quicklisp-quickstart:install)'"
 ERRLOG="/tmp/swiqlisp-setup_error.log"
 INVOC="$INVOC $load $LOAD $eval $EVAL $quit 2>$ERRLOG"
-eval $SWIQLISP
+eval $SWIQLISP_INSTALL
 
 # check for errors
 if test -s $ERRLOG; then

@@ -26,8 +26,16 @@
 #  instance.
 
 
+SYSUSR=swiqlisp
+SYSUSR_HOME=/usr/share/common-lisp/$SYSUSR
+SU=/bin/su
+SWIQLISP='$SU -c "$INVOC" $SYSUSR'
+
+ACTION=$1; OBJECT=$2; LISP=$3
+
+# usage & argument sanity checks
 usage () {
-    echo -e "\n Usage: sudo ./swiqlisp.sh <action> [<project-or-system>] \
+    echo -e "\n Usage: sudo ./swiqlisp <action> [<project-or-system>] \
 [<lisp>]
 
  Valid actions:
@@ -36,40 +44,40 @@ usage () {
 
  Default lisp: SBCL\n"; }
 
-if test -z "$1" -o "$1" = "-h" -o "$1" = "--help"; then
+if test -z "$ACTION" -o "$ACTION" = "-h" -o "$ACTION" = "--help"; then
     usage; exit 1
 fi
 
-if test \( "${1:0:6}" = "instal" -o "${1:0:6}" = "remove" \) -a -z "$2"; then
+if test \( "${ACTION:0:6}" = "instal" -o "${ACTION:0:6}" = "remove" \)\
+        -a -z "$OBJECT"; then
     usage; exit 1
 fi
 
-
-ACTION=$1; OBJECT=$2; LISP=$3
+if test $(id -u) -ne 0; then usage; exit 1; fi
 
 # default lisp implementation
-[ -z "$3" ] && LISP=/usr/bin/sbcl
+if test -z "$3"; then LISP=/usr/bin/sbcl; fi
 
-# invocations
 # test for $LISP
-! [ -x "$LISP" ] && echo "$LISP not found. Aborting. (Tip: use absolute paths)." \
-    && exit 1
+if ! test -x "$LISP"; then
+    echo "$LISP not found. Aborting. (Tip: use absolute paths)." \
+    exit 1
+fi
 
+# lisp invocations
 case $LISP in
-    sbcl | /bin/sbcl | /usr/bin/sbcl | /usr/local/bin/sbcl )
+
+    sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
 	INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
 --disable-debugger --no-sysinit --no-userinit --noprint \
 --load quicklisp/setup --load swiqlisp"
 	load=--load; eval=--eval; quit=--quit;;
-    # add lisp implementation invocation strings here
- * )
-	echo "Unknown lisp implementation; $LISP. Aborting." && exit 1;;
-esac
 
-SYSUSR=swiqlisp
-SYSUSR_HOME=/usr/share/common-lisp/$SYSUSR
-SU=/bin/su
-SWIQLISP='$SU -c "$INVOC" $SYSUSR'
+    # add lisp implementation invocation strings here
+
+    *)
+	echo "Unknown lisp implementation; $LISP. Aborting."; exit 1;;
+esac
 
 ###############
 # function defs
@@ -122,6 +130,7 @@ system_apropos () {
     EVAL="'(swiqlisp-apropos \"$OBJECT\")'"
     INVOC="$INVOC $eval $EVAL $quit"
     eval $SWIQLISP; }
+
 
 ###########
 # top level
