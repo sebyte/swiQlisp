@@ -31,15 +31,21 @@ SWIQLISP_INSTALL='$SU -c "$INVOC" $SYSUSR'
 
 LISP=$1
 
-# usage & argument sanity checks
+# functions - ask, usage, need_root
+ask () { read -p "$1 [y/n] " ans; }
+
 usage () {
     echo -e "\n Usage: sudo swiqlisp-install [<lisp>]
 
  Default lisp: SBCL\n"; }
 
+need_root () {
+    echo -e "\n Root privileges required.\n"; }
+
+# argument sanity checks
 if test "$LISP" = "-h" -o "$1" = "--help"; then usage; exit 1; fi
 
-if test $(id -u) -ne 0; then usage; exit 1; fi
+if test $(id -u) -ne 0; then need_root; exit 1; fi
 
 # default lisp implementation
 if test -z "$LISP"; then LISP=/usr/bin/sbcl; fi
@@ -48,6 +54,48 @@ if test -z "$LISP"; then LISP=/usr/bin/sbcl; fi
 if test ! -x "$LISP"; then
     echo -e "\n$LISP not found. Aborting. (Tip: use absolute paths).\n"
     exit 1
+fi
+
+# create system user (suppressing the warning emitted if user exists)
+adduser --quiet --system --home $SYSUSR_HOME \
+        --shell /bin/sh --disabled-login $SYSUSR
+
+# check for system user home
+if test ! -d $SYSUSR_HOME; then
+    echo -e "\nDirectory $SYSUSR_HOME not found.  Aborting.\n"
+    exit 1 1
+fi
+
+# force copy to allow for updates
+cp -f swiqlisp.lisp $SYSUSR_HOME
+
+# init file stanza
+case $LISP in
+
+    sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
+	SYSINIT_FILE=/etc/sbclrc
+	INIT_FILE_STANZA="(require 'asdf)
+(push #p\"$SYSUSR_HOME/installed-systems/\" asdf:*central-registry*)" ;;
+    # add init file stanzas for other lisps  here
+
+    *)
+	echo -e "\nUnknown lisp implementation; $LISP. Aborting.\n"
+	exit 1 ;;
+esac
+
+ask "Append
+
+$INIT_FILE_STANZA
+
+to system init file ($SYSINIT_FILE)"
+
+if test "$ans" = "y" -o "$ans" = "Y"; then
+    echo -e "
+;;; beginning of swiQlisp stanza
+$INIT_FILE_STANZA
+;;; end of swiQlisp stanza\n" >> $SYSINIT_FILE
+else
+    exit
 fi
 
 # invocation strings
@@ -64,22 +112,14 @@ case $LISP in
 	echo -e "\nUnknown lisp implementation; $LISP. Aborting.\n" && exit 1 ;;
 esac
 
-# create system user (suppressing the warning emitted if user exists)
-adduser --quiet --system --home $SYSUSR_HOME \
-        --shell /bin/sh --disabled-login $SYSUSR
-
-# check for system user home
-if test ! -d $SYSUSR_HOME; then
-    echo -e "\nDirectory $SYSUSR_HOME not found.  Aborting.\n"
-    exit 1 1
-fi
-
-# force copy to allow for updates
-cp -f swiqlisp.lisp $SYSUSR_HOME
-
 cd $SYSUSR_HOME
 # ------------------------------------------------------------------------------
 # in $SYSUSR_HOME
+
+if test -d quicklisp; then
+    echo -e "\nSite-wide Quicklisp is already installed.  Aborting.\n"
+    exit 1
+fi
 
 # fetch Quicklisp quickstart file
 wget -O quicklisp.lisp http://beta.quicklisp.org/quicklisp.lisp
@@ -91,11 +131,6 @@ touch installed-systems.old
 
 # setup installed-systems dir
 mkdir -p installed-systems
-
-if test -d quicklisp; then
-    echo -e "\nSite-wide Quicklisp is already installed.  Aborting.\n"
-    exit 1
-fi
 
 # install Quicklisp
 LOAD="quicklisp.lisp"
