@@ -46,19 +46,24 @@
      ;; stragglers (at most two)
      l)))
 
-(defun write-threes (leftcol midcol rightcol
-                     &optional (3col-format " ~25a ~25a ~25a~%"))
-  (mapc (lambda (objX objY objZ)
-          (format t 3col-format (string-truncate (name objX))
-                                (string-truncate (name objY))
-                                (string-truncate (name objZ))))
-        leftcol midcol rightcol))
-
-(defun write-stragglers (objects &optional (straggler-format " ~25a"))
-  (format t straggler-format (string-truncate (name (car objects))))
-  (when (cadr objects)
-    (format t straggler-format (string-truncate (name (cadr objects)))))
-  (terpri))
+(defun write-objects (objects &optional (width 25))
+  (let ((3col-format (format nil " ~~~da ~~~da ~~~da~%" width width width))
+        (straggler-format (format nil " ~~~da" width)))
+    (multiple-value-bind (leftcol midcol rightcol stragglers)
+        (split-list objects)
+      ;; threes
+      (mapc (lambda (objX objY objZ)
+              (format t 3col-format (string-truncate (name objX))
+                      (string-truncate (name objY))
+                      (string-truncate (name objZ))))
+            leftcol midcol rightcol)
+      ;; stragglers
+      (when stragglers
+        (format t straggler-format (string-truncate (name (car objects))))
+        (when (cadr objects)
+          (format t straggler-format (string-truncate (name (cadr objects)))))
+        (terpri))
+      (terpri))))
 
 ;;; ============================================================================
 ;;; query functions
@@ -67,13 +72,9 @@
 (defun list-installed-projects ()
   (mapc (lambda (d)
           (let ((installed-releases (installed-releases d)))
-            (multiple-value-bind (leftcol midcol rightcol stragglers)
-                (split-list installed-releases)
-              (format t "~%~d project~:p installed from distribution: ~a~%~%"
-                      (length installed-releases) (name d))
-              (write-threes leftcol midcol rightcol)
-              (when stragglers (write-stragglers stragglers))))
-          (terpri))
+            (format t "~%~d project~:p installed from distribution: ~a~%~%"
+                    (length installed-releases) (name d))
+            (write-objects installed-releases)))
         (all-dists)))
 
 (defun list-available-projects ()
@@ -84,26 +85,18 @@
                   (remove-if (lambda (r)
                                (member r installed-releases :test #'equal))
                              provided-releases)))
-            (multiple-value-bind (leftcol midcol rightcol stragglers)
-                (split-list available-releases)
-              (format t "~%~d other project~:p available from distribution: ~a~%~%"
-                      (length available-releases) (name d))
-              (write-threes leftcol midcol rightcol)
-              (when stragglers (write-stragglers stragglers))))
-          (terpri))
+            (format t "~%~d other project~:p available from distribution: ~a~%~%"
+                    (length available-releases) (name d))
+            (write-objects available-releases)))
         (all-dists)))
 
 ;;; systems
 (defun list-installed-systems ()
   (mapc (lambda (d)
           (let ((installed-systems (installed-systems d)))
-            (multiple-value-bind (leftcol midcol rightcol stragglers)
-                (split-list installed-systems)
-              (format t "~%~d system~:p installed from distribution: ~a~%~%"
-                      (length installed-systems) (name d))
-              (write-threes leftcol midcol rightcol)
-              (when stragglers (write-stragglers stragglers))))
-          (terpri))
+            (format t "~%~d system~:p installed from distribution: ~a~%~%"
+                    (length installed-systems) (name d))
+            (write-objects installed-systems)))
         (all-dists)))
 
 (defun list-available-systems ()
@@ -114,13 +107,9 @@
                   (remove-if (lambda (r)
                                (member r installed-systems :test #'equal))
                              provided-systems)))
-            (multiple-value-bind (leftcol midcol rightcol stragglers)
-                (split-list available-systems)
-              (format t "~%~d other system~:p available from distribution: ~a~%~%"
-                      (length available-systems) (name d))
-              (write-threes leftcol midcol rightcol)
-              (when stragglers (write-stragglers stragglers))))
-          (terpri))
+            (format t "~%~d other system~:p available from distribution: ~a~%~%"
+                    (length available-systems) (name d))
+            (write-objects available-systems)))
         (all-dists)))
 
 (defun swiqlisp-apropos (term)
@@ -130,13 +119,8 @@
                        (search term (name (release system))))
                (push system matches))))
       (mapc #'matcher (provided-systems t))
-      (when matches
-        (format t "~%~d system matche~:p found:~%~%" (length matches))
-        (multiple-value-bind (leftcol midcol rightcol stragglers)
-            (split-list (reverse matches))
-          (write-threes leftcol midcol rightcol)
-          (when stragglers (write-stragglers stragglers)))
-        (terpri)))))
+      (format t "~%~d matching system~:p found:~%~%" (length matches))
+      (write-objects matches))))
 
 
 ;;; ============================================================================
