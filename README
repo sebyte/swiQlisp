@@ -37,24 +37,18 @@ TODO
 ----
 
  - A configure script for setting swiqlisp home directory location & generating
-   a runtime configuration file (which should include: choice of lisp... and
-   what else?)
+   swiqlisp.rc (which should include: choice of lisp... and what else?)
 
  - As well as installing Quicklisp under ~swiqlisp, swiqlisp-install should put:
 
     swiqlisp      under /usr/sbin/
     swiqlisp.rc   under /etc/
 
- - Actually implement remove-{project|system}.
-
- - Provide an uninstallation script; swiqlisp-uninstall.
-
- - Should swiqlisp-install also add the ASDF stanza to /etc/sbclrc? Debian's sbcl
-   uses /etc/sbcl.rc.  What about other lisps?
+ - Replace install-project with project-systems
 
  - Invocations for lisps other than sbcl.
 
- - New commands: update-dist, update-client (is self-update a better name?)
-                 init-file-stanza
+ - New commands: remove-system, update-dist, update-client (is self-update a
+                 better name?)
 
  - Site-wide SLIME?
