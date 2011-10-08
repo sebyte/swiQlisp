@@ -1,0 +1,11 @@
+# -*- shell-script -*-
+
+ask () { read -p "$1 [y/n] " ans; }
+
+usage () {
+    echo -e "\n Usage: sudo swiqlisp-install [<lisp>]
+
+ Default lisp: SBCL\n"; }
+
+need_root () {
+    echo -e "\n Root privileges required.\n"; }

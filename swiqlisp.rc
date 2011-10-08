@@ -1,0 +1,5 @@
+# -*- shell-script -*-
+
+SYSUSR=swiqlisp
+SYSUSR_HOME=/usr/share/common-lisp/swiqlisp
+SU=/bin/su
