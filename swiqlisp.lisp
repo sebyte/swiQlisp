@@ -46,25 +46,38 @@
      ;; stragglers (at most two)
      l)))
 
-(defun write-objects (objects &optional (width 25))
-  (let ((3col-format (format nil " ~~~da ~~~da ~~~da~%" width width width))
-        (straggler-format (format nil " ~~~da" width)))
+(defun 3col-write (objects &key (col-width 25) (reader #'identity))
+  (let ((3col-format (format nil " ~~~da ~~~da ~~~da~%"
+                             col-width col-width col-width))
+        (straggler-format (format nil " ~~~da" col-width)))
     (multiple-value-bind (leftcol midcol rightcol stragglers)
         (split-list objects)
       ;; threes
       (mapc (lambda (objX objY objZ)
-              (format t 3col-format (string-truncate (name objX))
-                      (string-truncate (name objY))
-                      (string-truncate (name objZ))))
+              (format t 3col-format
+                      (string-truncate (funcall reader objX))
+                      (string-truncate (funcall reader objY))
+                      (string-truncate (funcall reader objZ))))
             leftcol midcol rightcol)
-      ;; stragglers
-      (when stragglers
-        (format t straggler-format (string-truncate (name (car objects))))
-        (when (cadr objects)
-          (format t straggler-format (string-truncate (name (cadr objects)))))
+      ;; stragglers (at most two)
+      (when (car stragglers)
+        (format t straggler-format
+                (string-truncate (funcall reader (car stragglers))))
+        (when (cadr stragglers)
+          (format t straggler-format
+                  (string-truncate (funcall reader (cadr stragglers)))))
         (terpri))
       (terpri))))
 
+(defun file-list (file)
+  (let (lines)
+    (with-open-file (filestream file)
+      (do ((line (read-line filestream) (read-line filestream nil 'eof)))
+          ((eq line 'eof))
+        (push line lines)))
+    (reverse lines)))
+
+
 ;;; ============================================================================
 ;;; query functions
 
@@ -74,7 +87,7 @@
           (let ((installed-releases (installed-releases d)))
             (format t "~%~d project~:p installed from distribution: ~a~%~%"
                     (length installed-releases) (name d))
-            (write-objects installed-releases)))
+            (3col-write installed-releases :reader #'name)))
         (all-dists)))
 
 (defun list-available-projects ()
@@ -87,7 +100,7 @@
                              provided-releases)))
             (format t "~%~d other project~:p available from distribution: ~a~%~%"
                     (length available-releases) (name d))
-            (write-objects available-releases)))
+            (3col-write available-releases :reader #'name)))
         (all-dists)))
 
 ;;; systems
@@ -96,7 +109,7 @@
           (let ((installed-systems (installed-systems d)))
             (format t "~%~d system~:p installed from distribution: ~a~%~%"
                     (length installed-systems) (name d))
-            (write-objects installed-systems)))
+            (3col-write installed-systems :reader #'name)))
         (all-dists)))
 
 (defun list-available-systems ()
@@ -109,7 +122,7 @@
                              provided-systems)))
             (format t "~%~d other system~:p available from distribution: ~a~%~%"
                     (length available-systems) (name d))
-            (write-objects available-systems)))
+            (3col-write available-systems :reader #'name)))
         (all-dists)))
 
 (defun swiqlisp-apropos (term)
@@ -120,7 +133,14 @@
                (push system matches))))
       (mapc #'matcher (provided-systems t))
       (format t "~%~d matching system~:p found:~%~%" (length matches))
-      (write-objects matches))))
+      (3col-write matches :reader #'name))))
+
+(defun additional-systems-report ()
+  (let ((newly-installed-systems
+         (file-list #p"installed-systems.new")))
+    (format t "~%~d newly installed system~:p now available.~%~%"
+            (length newly-installed-systems))
+    (3col-write newly-installed-systems :reader #'pathname-name)))
 
 
 ;;; ============================================================================
@@ -139,10 +159,13 @@
       (if (project-installedp project-name)
           (format t "~%Project ~a is already installed.~%~%" project-name)
         ;; install each system provided by the project in turn
-        (dolist (system (provided-systems (find-release project-name))
+        (dolist (system (reverse (provided-systems (find-release project-name)))
                  (format t "~%Project ~a successfully installed.~%~%" project-name))
-          (unless (installedp (find-system (name system)))
-            (ql:quickload (name system)))))
+          (if (installedp (find-system (name system)))
+              (format t "~%System ~a already installed." (name system))
+            (progn
+              (format t "~%Installing system ~a:~%~%" (name system))
+              (ql:quickload (name system))))))
     (format t "~%Project ~a not found.~%~%" project-name)))
 
 ;;; systems
