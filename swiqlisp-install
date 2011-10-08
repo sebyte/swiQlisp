@@ -22,25 +22,13 @@
 #  This script (swiqlisp-install) is the site-wide Quicklisp installation tool,
 #  typically only used once.
 #
-#  Use the script swiqlisp to manage your site-wide Quicklisp installation.
+#  Use the script swiqlisp to manage your site-wide Quicklisp installation on a
+#  day-to-day basis.
 
-SYSUSR=swiqlisp
-SYSUSR_HOME=/usr/share/common-lisp/$SYSUSR
-SU=/bin/su
-SWIQLISP_INSTALL='$SU -c "$INVOC" $SYSUSR'
-
+source swiqlisp.rc
+source swiqlisp-utils
+SWIQLISP_INSTALL='$SU -c "$INVOC $COMMANDS" $SYSUSR'
 LISP=$1
-
-# functions - ask, usage, need_root
-ask () { read -p "$1 [y/n] " ans; }
-
-usage () {
-    echo -e "\n Usage: sudo swiqlisp-install [<lisp>]
-
- Default lisp: SBCL\n"; }
-
-need_root () {
-    echo -e "\n Root privileges required.\n"; }
 
 # argument sanity checks
 if test "$LISP" = "-h" -o "$1" = "--help"; then usage; exit 1; fi
@@ -94,8 +82,6 @@ if test "$ans" = "y" -o "$ans" = "Y"; then
 ;;; beginning of swiQlisp stanza
 $INIT_FILE_STANZA
 ;;; end of swiQlisp stanza\n" >> $SYSINIT_FILE
-else
-    exit
 fi
 
 # invocation strings
@@ -136,7 +122,7 @@ mkdir -p installed-systems
 LOAD="quicklisp.lisp"
 EVAL="'(quicklisp-quickstart:install)'"
 ERRLOG="/tmp/swiqlisp-setup_error.log"
-INVOC="$INVOC $load $LOAD $eval $EVAL $quit 2>$ERRLOG"
+COMMANDS="$load $LOAD $eval $EVAL $quit 2>$ERRLOG"
 eval $SWIQLISP_INSTALL
 
 # check for errors
