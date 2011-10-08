@@ -25,24 +25,10 @@
 #  Use the script swiqlisp-install to install Quicklisp site-wide in the first
 #  instance.
 
-
-SYSUSR=swiqlisp
-SYSUSR_HOME=/usr/share/common-lisp/$SYSUSR
-SU=/bin/su
-SWIQLISP='$SU -c "$INVOC" $SYSUSR'
-
+source swiqlisp.rc
+source swiqlisp-utils
+SWIQLISP='$SU -c "$INVOC $COMMANDS" $SYSUSR'
 ACTION=$1; OBJECT=$2; LISP=$3
-
-# usage & argument sanity checks
-usage () {
-    echo -e "\n Usage: sudo ./swiqlisp <action> [<project-or-system>] \
-[<lisp>]
-
- Valid actions:
-
-  projects systems install-{project|system} remove-{project|system} system-apropos
-
- Default lisp: SBCL\n"; }
 
 if test -z "$ACTION" -o "$ACTION" = "-h" -o "$ACTION" = "--help"; then
     usage; exit 1
@@ -53,7 +39,7 @@ if test \( "${ACTION:0:6}" = "instal" -o "${ACTION:0:6}" = "remove" \)\
     usage; exit 1
 fi
 
-if test $(id -u) -ne 0; then usage; exit 1; fi
+if test $(id -u) -ne 0; then need_root; exit 1; fi
 
 # default lisp implementation
 if test -z "$3"; then LISP=/usr/bin/sbcl; fi
@@ -64,7 +50,9 @@ if ! test -x "$LISP"; then
     exit 1
 fi
 
+##################
 # lisp invocations
+
 case $LISP in
 
     sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
@@ -79,8 +67,8 @@ case $LISP in
 	echo "Unknown lisp implementation; $LISP. Aborting."; exit 1;;
 esac
 
-###############
-# function defs
+#################
+# shell functions
 
 rotate_installed_systems_files () {
     rm -f installed-systems.new
@@ -95,25 +83,30 @@ write_links_to_additional_system_files () {
 	ln -s  ../quicklisp/$system installed-systems/
     done; }
 
-additional_systems_report () {
-    echo "The following new ASDF systems are now available:
-"
-    for system in $(cat installed-systems.new); do
-	echo " $(basename $system .asd)"
-    done; echo; }
-
-# API function defs
+################
+# lisp functions
 
 list () {
     EVAL1="'(list-installed-$1)'"
     EVAL2="'(list-available-$1)'"
-    INVOC="$INVOC $eval $EVAL1 $eval $EVAL2 $quit"
+    COMMANDS="$eval $EVAL1 $eval $EVAL2 $quit"
+    eval $SWIQLISP; }
+
+system_apropos () {
+    EVAL="'(swiqlisp-apropos \"$OBJECT\")'"
+    COMMANDS="$eval $EVAL $quit"
+    eval $SWIQLISP; }
+
+
+additional_systems_report () {
+    EVAL="'(additional-systems-report)'"
+    COMMANDS="$eval $EVAL $quit"
     eval $SWIQLISP; }
 
 install () {
     EVAL="'(install-$1 \"$OBJECT\")'"
     ERRLOG="/tmp/install-${1}_${OBJECT}_error.log"
-    INVOC="$INVOC $eval $EVAL $quit 2>$ERRLOG"
+    COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
     eval $SWIQLISP
     if [ -s $ERRLOG ]; then
 	echo -e "\n\nAn error occurred. See $ERRLOG for more information.\n"
@@ -121,16 +114,11 @@ install () {
     else # success
 	rm $ERRLOG # empty
 	rotate_installed_systems_files
-	[ -s installed-systems.new ] && \
-	    write_links_to_additional_system_files && \
+	if test -s installed-systems.new; then
+	    write_links_to_additional_system_files
 	    additional_systems_report
+	fi
     fi; }
-
-system_apropos () {
-    EVAL="'(swiqlisp-apropos \"$OBJECT\")'"
-    INVOC="$INVOC $eval $EVAL $quit"
-    eval $SWIQLISP; }
-
 
 ###########
 # top level
