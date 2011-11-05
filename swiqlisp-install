@@ -51,7 +51,7 @@ adduser --quiet --system --home $SYSUSR_HOME \
 # check for system user home
 if test ! -d $SYSUSR_HOME; then
     echo -e "\nDirectory $SYSUSR_HOME not found.  Aborting.\n"
-    exit 1 1
+    exit 1
 fi
 
 # force copy to allow for updates
