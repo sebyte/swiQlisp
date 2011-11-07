@@ -1,11 +1,20 @@
 # -*- shell-script -*-
 
-ask () { read -p "$1 [y/n] " ans; }
+ask () { read -p "$1 [y/n]? " ans; }
 
 usage () {
-    echo -e "\n Usage: sudo swiqlisp-install [<lisp>]
-
- Default lisp: SBCL\n"; }
+    echo "Usage: sudo swiqlisp-install [<lisp>]
+Default lisp: SBCL"; }
 
 need_root () {
-    echo -e "\n Root privileges required.\n"; }
+    echo "Root privileges required."; }
+
+ensure_trailing_slash () {
+    if test ${1: -1} = /; then echo -n $1
+    else echo -n $1/
+    fi ; }
+
+ensure_no_trailing_slash () {
+    if test ${1: -1} = /; then echo -n ${1:0: -1}
+    else echo -n $1
+    fi ; }
