@@ -52,3 +52,5 @@ TODO
                  better name?)
 
  - Site-wide SLIME?
+
+ - Modify ask () so that it presents a default answer (capitalised).
