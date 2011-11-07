@@ -1,4 +1,5 @@
 #!/bin/bash
+# -*- page-delimiter: "^#" -*-
 
 # Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
 #
@@ -16,7 +17,6 @@
 # You should have received a copy of the GNU General Public License along with
 # swiQlisp.  If not, see <http://www.gnu.org/licenses/>
 
-
 # Commentary:
 #
 #  This script (swiqlisp-install) is the site-wide Quicklisp installation tool,
@@ -25,111 +25,130 @@
 #  Use the script swiqlisp to manage your site-wide Quicklisp installation on a
 #  day-to-day basis.
 
+set -e
+
 source swiqlisp.rc
 source swiqlisp-utils
-SWIQLISP_INSTALL='$SU -c "$INVOC $COMMANDS" $SYSUSR'
-LISP=$1
 
-# argument sanity checks
+#-----------------------------------------------------------------------------
+# check command line args
 if test "$LISP" = "-h" -o "$1" = "--help"; then usage; exit 1; fi
-
+# check for root privs
 if test $(id -u) -ne 0; then need_root; exit 1; fi
-
-# default lisp implementation
-if test -z "$LISP"; then LISP=/usr/bin/sbcl; fi
-
-# test for $LISP
+# set SWIQLISP_PATHNAME (used by lisp)  and maybe fix SWIQLISP_DIR
+SWIQLISP_PATHNAME=$(ensure_trailing_slash $SWIQLISP_DIR)
+SWIQLISP_DIR=$(ensure_no_trailing_slash $SWIQLISP_DIR)
+if test $DEBUG = on; then echo "swiQlisp directory (SWIQLISP_DIR): $SWIQLISP_DIR"; fi
+# test for user's' lisp
 if test ! -x "$LISP"; then
-    echo -e "\n$LISP not found. Aborting. (Tip: use absolute paths).\n"
+    echo "$LISP not found. Aborting. (Tip: use absolute paths)."
     exit 1
 fi
 
-# create system user (suppressing the warning emitted if user exists)
-adduser --quiet --system --home $SYSUSR_HOME \
-        --shell /bin/sh --disabled-login $SYSUSR
-
-# check for system user home
-if test ! -d $SYSUSR_HOME; then
-    echo -e "\nDirectory $SYSUSR_HOME not found.  Aborting.\n"
-    exit 1
-fi
-
-# force copy to allow for updates
-cp -f swiqlisp.lisp $SYSUSR_HOME
-
-# init file stanza
+#-----------------------------------------------------------------------------
+# setup for user's lisp
 case $LISP in
-
     sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
-	SYSINIT_FILE=/etc/sbclrc
-	INIT_FILE_STANZA="(require 'asdf)
-(push #p\"$SYSUSR_HOME/installed-systems/\" asdf:*central-registry*)" ;;
-    # add init file stanzas for other lisps  here
-
+	source swiqlisp-sbcl ;;
+    # add other lisps here
     *)
-	echo -e "\nUnknown lisp implementation; $LISP. Aborting.\n"
+	echo "Unknown lisp implementation; $LISP. Aborting."
 	exit 1 ;;
 esac
 
-ask "Append
+#-----------------------------------------------------------------------------
+# prepare swiqlisp installation directory
+mkdir -p $SWIQLISP_DIR
+QUICKLISP_DIR=$SWIQLISP_DIR/quicklisp
+QUICKSTART_FILE=$SWIQLISP_DIR/quicklisp.lisp
+LISP_ERRLOG=$SWIQLISP_DIR/lisp-error.log
 
-$INIT_FILE_STANZA
-
-to system init file ($SYSINIT_FILE)"
-
-if test "$ans" = "y" -o "$ans" = "Y"; then
-    echo -e "
-;;; beginning of swiQlisp stanza
-$INIT_FILE_STANZA
-;;; end of swiQlisp stanza\n" >> $SYSINIT_FILE
-fi
-
-# invocation strings
-case $LISP in
-
-    sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
-	INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
---disable-debugger --no-sysinit --no-userinit --noprint"
-	load=--load; eval=--eval; quit=--quit;;
-
-    # add lisp implementation invocation strings here
-
-    * )
-	echo -e "\nUnknown lisp implementation; $LISP. Aborting.\n" && exit 1 ;;
-esac
-
-cd $SYSUSR_HOME
-# ------------------------------------------------------------------------------
-# in $SYSUSR_HOME
-
-if test -d quicklisp; then
-    echo -e "\nSite-wide Quicklisp is already installed.  Aborting.\n"
+cp -f swiqlisp.lisp $SWIQLISP_DIR  # force copying allows for updates
+if test -d $QUICKLISP_DIR; then
+    echo "Site-wide Quicklisp is already installed."
     exit 1
 fi
-
-# fetch Quicklisp quickstart file
-wget -O quicklisp.lisp http://beta.quicklisp.org/quicklisp.lisp
-
+# fetch Quicklisp quickstart file (overwrites any existing quickstart file)
+if test $VERBOSE = on; then
+    wget -O $QUICKSTART_FILE http://beta.quicklisp.org/quicklisp.lisp
+else
+    echo "Fetching Quicklisp quickstart file from quicklisp.org ..."
+    wget -q -O $QUICKSTART_FILE http://beta.quicklisp.org/quicklisp.lisp
+fi
 # setup installed-systems files
-touch installed-systems.current
-touch installed-systems.new
-touch installed-systems.old
-
+touch $SWIQLISP_DIR/installed-systems.current
+touch $SWIQLISP_DIR/installed-systems.new
+touch $SWIQLISP_DIR/installed-systems.old
 # setup installed-systems dir
-mkdir -p installed-systems
+mkdir -p $SWIQLISP_DIR/installed-systems
 
+#-----------------------------------------------------------------------------
 # install Quicklisp
-LOAD="quicklisp.lisp"
-EVAL="'(quicklisp-quickstart:install)'"
-ERRLOG="/tmp/swiqlisp-setup_error.log"
-COMMANDS="$load $LOAD $eval $EVAL $quit 2>$ERRLOG"
-eval $SWIQLISP_INSTALL
-
+LISP_COMMAND='$SU -c "$INVOC $COMMANDS"'
+# INVOC is defined in swiqlisp-<impl> files
+EVAL="'(quicklisp-quickstart:install :path \"$SWIQLISP_PATHNAME\")'"
+if test $VERBOSE = on; then
+    COMMANDS="$load $QUICKSTART_FILE $eval $EVAL $quit 2>$LISP_ERRLOG"
+else
+    echo "Installing Quicklisp site-wide ..."
+    COMMANDS="$load $QUICKSTART_FILE $eval $EVAL $quit 1>/dev/null 2>$LISP_ERRLOG"
+fi
+if test $DEBUG = on; then
+    # write the command for visual inspection
+    eval echo $LISP_COMMAND; fi
+# go!
+eval $LISP_COMMAND
 # check for errors
-if test -s $ERRLOG; then
-    echo -e "\n\nAn error occurred.  See $ERRLOG for details.\n"
+if test -s $LISP_ERRLOG; then
+    echo "An error occurred.  See $LISP_ERRLOG for details."
+    exit 1
 else # success
-    rm $ERRLOG # empty
-    rm quicklisp.lisp
-    echo -e "Site-wide Quicklisp installed under $SYSUSR_HOME/.\n"
-fi;
+    rm $LISP_ERRLOG # empty
+    rm $QUICKSTART_FILE
+    echo "Site-wide Quicklisp installed under $SWIQLISP_DIR."
+fi
+
+#-----------------------------------------------------------------------------
+# write/remove init file stanza
+init_file_stanza_start=';;; swiQlisp stanza begin - DO NOT EDIT this comment'
+init_file_stanza_end=';;; swiQlisp stanza end - DO NOT EDIT this comment'
+# line numbers
+existing_stanza_start=$(grep -xne "$init_file_stanza_start" $SYSINIT_FILE |\
+                        cut -d: -f1)
+existing_stanza_end=$(grep -xne "$init_file_stanza_end" $SYSINIT_FILE |\
+                      cut -d: -f1)
+
+if test -n "$existing_stanza_start" -a -n "$existing_stanza_end"; then
+    # swiqlisp stanza exists
+    ask "Your system-wide init file ($SYSINIT_FILE) already includes
+the swiQlisp stanza:
+
+$INIT_FILE_STANZA
+
+Remove it"
+    if test "$ans" = "y" -o "$ans" = "Y"; then
+	sed_script="${existing_stanza_start},${existing_stanza_end}d"
+	sed -i $sed_script $SYSINIT_FILE
+	echo "swiQlisp stanza removed."
+    else
+	echo "File untouched."
+    fi
+else
+    # no swiqlisp stanza exists
+    ask "Append
+
+$INIT_FILE_STANZA
+
+to the system-wide init file ($SYSINIT_FILE)"
+
+    if test "$ans" = "y" -o "$ans" = "Y"; then
+	echo "
+$init_file_stanza_start
+$INIT_FILE_STANZA
+$init_file_stanza_end
+" >> $SYSINIT_FILE
+	echo "swiQlisp stanza added."
+    else
+	echo "File untouched."
+    fi
+fi
