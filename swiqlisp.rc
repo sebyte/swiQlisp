@@ -1,5 +1,9 @@
 # -*- shell-script -*-
 
-SYSUSR=swiqlisp
-SYSUSR_HOME=/usr/share/common-lisp/swiqlisp
 SU=/bin/su
+LISP=/usr/local/bin/sbcl
+SWIQLISP_DIR=/usr/share/common-lisp/swiqlisp
+
+VERBOSE=off
+DEBUG=off
+LISP_DEBUGGER=off
