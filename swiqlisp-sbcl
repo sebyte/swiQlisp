@@ -14,4 +14,5 @@ load=--load; eval=--eval; quit=--quit
 # init file stanza
 SYSINIT_FILE=/etc/sbclrc
 INIT_FILE_STANZA="(require 'asdf)
-(push #p\"$SWIQLISP_DIR/installed-systems/\" asdf:*central-registry*)"
+(push #p\"$SWIQLISP_DIR/installed-systems/\"
+      asdf:*central-registry*)"
