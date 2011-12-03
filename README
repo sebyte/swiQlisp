@@ -36,6 +36,8 @@ Default lisp: sbcl
 TODO
 ----
 
+ - /root/.cache/common-lisp/... Is this good?  Do we even need to compile stuff?
+
  - A configure script for setting swiqlisp home directory location & generating
    swiqlisp.rc (which should include: choice of lisp... and what else?)
 
@@ -44,12 +46,10 @@ TODO
     swiqlisp      under /usr/sbin/
     swiqlisp.rc   under /etc/
 
- - Replace install-project with project-systems
-
  - Invocations for lisps other than sbcl.
 
- - New commands: remove-system, update-dist, update-client (is self-update a
-                 better name?)
+ - New commands: project-systems, remove-system, update-dist, update-client (is
+                 self-update a better name?)
 
  - Site-wide SLIME?
 

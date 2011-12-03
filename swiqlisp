@@ -1,4 +1,5 @@
 #!/bin/bash
+# -*- page-delimiter: "^#" -*-
 
 # Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
 #
@@ -25,113 +26,113 @@
 #  Use the script swiqlisp-install to install Quicklisp site-wide in the first
 #  instance.
 
+#-----------------------------------------------------------------------------
+#set -e				# grep returns exit code 1 if no matches are found
 source swiqlisp.rc
 source swiqlisp-utils
-SWIQLISP='$SU -c "$INVOC $COMMANDS" $SYSUSR'
-ACTION=$1; OBJECT=$2; LISP=$3
 
-if test -z "$ACTION" -o "$ACTION" = "-h" -o "$ACTION" = "--help"; then
-    usage; exit 1
+ACTION=$1; OBJECT=$2
+usage="Usage: sudo ./swiqlisp <action> [<object>]"
+help_requested "$usage"
+if test \( "${ACTION:0:7}" = "install" -o "${ACTION:0:6}" = "remove" \) -a \
+        -z "$OBJECT"; then
+    echo "$usage"; exit 0
 fi
 
-if test \( "${ACTION:0:6}" = "instal" -o "${ACTION:0:6}" = "remove" \)\
-        -a -z "$OBJECT"; then
-    usage; exit 1
-fi
+check_root # FIXME - unprivileged users should be able to do some things
+swiqlisp_paths
+lisp_setup
+LISP_COMMAND='$SU -c "$INVOC $load $SWIQLISP_DIR/setup $load swiqlisp.lisp $COMMANDS"'
 
-if test $(id -u) -ne 0; then need_root; exit 1; fi
-
-# default lisp implementation
-if test -z "$3"; then LISP=/usr/bin/sbcl; fi
-
-# test for $LISP
-if ! test -x "$LISP"; then
-    echo "$LISP not found. Aborting. (Tip: use absolute paths)." \
-    exit 1
-fi
-
-##################
-# lisp invocations
-
-case $LISP in
-
-    sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
-	INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
---disable-debugger --no-sysinit --no-userinit --noprint \
---load quicklisp/setup --load swiqlisp"
-	load=--load; eval=--eval; quit=--quit;;
-
-    # add lisp implementation invocation strings here
-
-    *)
-	echo "Unknown lisp implementation; $LISP. Aborting."; exit 1;;
-esac
-
-#################
+#-----------------------------------------------------------------------------
 # shell functions
-
 rotate_installed_systems_files () {
-    rm -f installed-systems.new
-    mv -f installed-systems.current installed-systems.old
-    cat quicklisp/dists/quicklisp/installed/systems/*.txt | sort \
-	> installed-systems.current
-    grep -v -f installed-systems.old installed-systems.current \
-	> installed-systems.new; }
+    echo -n "" > $SWIQLISP_DIR/installed-systems.added
+    echo -n "" > $SWIQLISP_DIR/installed-systems.removed
+    mv -f $SWIQLISP_DIR/installed-systems.current \
+	$SWIQLISP_DIR/installed-systems.old
+    # FIXME - how to handle multiple dists?
+    cat $SWIQLISP_DIR/dists/quicklisp/installed/systems/*.txt | sort \
+	> $SWIQLISP_DIR/installed-systems.current
+    # systems that have just been added
+    grep -v -f $SWIQLISP_DIR/installed-systems.old \
+	$SWIQLISP_DIR/installed-systems.current \
+	> $SWIQLISP_DIR/installed-systems.added
+    # systems that have just been removed
+    grep -v -f $SWIQLISP_DIR/installed-systems.current \
+	$SWIQLISP_DIR/installed-systems.old \
+	> $SWIQLISP_DIR/installed-systems.removed; }
 
 write_links_to_additional_system_files () {
-    for system in $(cat installed-systems.new); do
-	ln -s  ../quicklisp/$system installed-systems/
+    for system in $(cat $SWIQLISP_DIR/installed-systems.added); do
+	ln -s  ../$system $SWIQLISP_DIR/installed-systems/
     done; }
 
-################
+remove_links_to_removed_system_files () {
+    for system in $(cat $SWIQLISP_DIR/installed-systems.removed); do
+	echo remove me - $system
+    done; }
+
+refresh_system_links () {
+    # for debugging purposes only
+    rm -f $SWIQLISP_DIR/installed-systems/*.asd
+    for system in $(cat $SWIQLISP_DIR/installed-systems.current); do
+	ln -s  ../$system $SWIQLISP_DIR/installed-systems/
+    done; }
+
+#-----------------------------------------------------------------------------
 # lisp functions
 
 list () {
     EVAL1="'(list-installed-$1)'"
     EVAL2="'(list-available-$1)'"
     COMMANDS="$eval $EVAL1 $eval $EVAL2 $quit"
-    eval $SWIQLISP; }
+    if test $DEBUG = on; then eval echo $LISP_COMMAND | tr -s \ ; fi
+    eval $LISP_COMMAND; }
 
 system_apropos () {
     EVAL="'(swiqlisp-apropos \"$OBJECT\")'"
     COMMANDS="$eval $EVAL $quit"
-    eval $SWIQLISP; }
-
+    if test $DEBUG = on; then eval echo $LISP_COMMAND | tr -s \ ; fi
+    eval $LISP_COMMAND; }
 
 additional_systems_report () {
     EVAL="'(additional-systems-report)'"
     COMMANDS="$eval $EVAL $quit"
-    eval $SWIQLISP; }
+    if test $DEBUG = on; then eval echo $LISP_COMMAND | tr -s \ ; fi
+    eval $LISP_COMMAND; }
 
 install () {
     EVAL="'(install-$1 \"$OBJECT\")'"
     ERRLOG="/tmp/install-${1}_${OBJECT}_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
-    eval $SWIQLISP
+    if test $DEBUG = on; then eval echo $LISP_COMMAND | tr -s \ ; fi
+    eval $LISP_COMMAND
     if [ -s $ERRLOG ]; then
 	echo -e "\n\nAn error occurred. See $ERRLOG for more information.\n"
 	exit 1
     else # success
 	rm $ERRLOG # empty
 	rotate_installed_systems_files
-	if test -s installed-systems.new; then
-	    write_links_to_additional_system_files
-	    additional_systems_report
-	fi
+	write_links_to_additional_system_files
+	additional_systems_report
     fi; }
 
-###########
-# top level
+# if test -s $SWIQLISP_DIR/installed-systems.added; then
+# fi
 
-cd $SYSUSR_HOME
+#-----------------------------------------------------------------------------
+# top level
 
 case $ACTION in
            projects) list projects;;
             systems) list systems;;
+    project-systems) list project_systems;; # unimplemented
     install-project) install project;;
      install-system) install system;;
-     remove-project) remove project;;
-      remove-system) remove system;;
+     remove-project) remove_system;;        # unimplemented
+      remove-system) remove_system;;	    # unimplemented
      system-apropos) system_apropos;;
+   refresh-syslinks) refresh_system_links;;
                   *) echo "Unknown action.  Aborting." && exit 1;;
 esac

@@ -1,0 +1,87 @@
+#!/bin/bash
+# -*- page-delimiter: "^#" -*-
+
+# Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
+#
+# This file is part of swiQlisp — site-wide Quicklisp.
+#
+# swiQlisp is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# swiQlisp is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# swiQlisp.  If not, see <http://www.gnu.org/licenses/>
+
+# Commentary:
+#
+#  Use this script (swiqlisp-stanza) to add or remove the swiqlisp stanza [1]
+#  from the site-wide site-wide initialisation file.
+#
+#  swiqlisp-install calls this script as the last step of the swiQlisp
+#  installation procedure.
+#
+# [1] For example, for SBCL:
+#
+#      (require 'asdf)
+#      (push #p"/usr/share/common-lisp/swiqlisp/installed-systems/"
+#            asdf:*central-registry*)
+#
+
+#-----------------------------------------------------------------------------
+source swiqlisp.rc
+source swiqlisp-utils
+help_requested "Usage: sudo ./swiqlisp-stanza"
+check_root
+swiqlisp_paths
+lisp_setup # needed only for value of SYSINIT_FILE
+
+
+#-----------------------------------------------------------------------------
+# write/remove init file stanza
+init_file_stanza_begin=';;; swiQlisp stanza begin - DO NOT EDIT this comment'
+init_file_stanza_end=';;; swiQlisp stanza end - DO NOT EDIT this comment'
+# line numbers (SYSINIT_FILE defined in swiqlisp-<impl>)
+existing_stanza_begin=$(grep -xne "$init_file_stanza_begin" $SYSINIT_FILE |\
+                        cut -d: -f1)
+existing_stanza_end=$(grep -xne "$init_file_stanza_end" $SYSINIT_FILE |\
+                      cut -d: -f1)
+
+if test -n "$existing_stanza_begin" -a -n "$existing_stanza_end"; then
+    # swiqlisp stanza exists
+    ask "Your system-wide init file ($SYSINIT_FILE) includes
+the swiQlisp stanza:
+
+$INIT_FILE_STANZA_FOR_DISPLAY
+
+Would you like to remove it"
+    if test "$ans" = "y" -o "$ans" = "Y"; then
+	sed_script="${existing_stanza_begin},${existing_stanza_end}d"
+	sed -i $sed_script $SYSINIT_FILE
+	echo "swiQlisp stanza removed."
+    else
+	echo "System-wide init file ($SYSINIT_FILE) untouched."
+    fi
+else
+    # no swiqlisp stanza exists
+    ask "Would you like to append the following stanza:
+
+$INIT_FILE_STANZA_FOR_DISPLAY
+
+to the system-wide init file ($SYSINIT_FILE)"
+
+    if test "$ans" = "y" -o "$ans" = "Y"; then
+	echo "
+$init_file_stanza_begin
+$INIT_FILE_STANZA
+$init_file_stanza_end
+" >> $SYSINIT_FILE
+	echo "swiQlisp stanza added."
+    else
+	echo "System-wide init file ($SYSINIT_FILE) untouched."
+    fi
+fi

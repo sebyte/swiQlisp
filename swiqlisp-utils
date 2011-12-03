@@ -1,20 +1,73 @@
-# -*- shell-script -*-
+# -*- mode:shell-script; page-delimiter: "^#" -*-
 
+# Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
+#
+# This file is part of swiQlisp — site-wide Quicklisp.
+#
+# swiQlisp is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# swiQlisp is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# swiQlisp.  If not, see <http://www.gnu.org/licenses/>
+
+# Commentary:
+#
+#  This is the swiQlisp utilities file, loaded at startup by each swiQlisp
+#  script.
+
+
+#-----------------------------------------------------------------------------
 ask () { read -p "$1 [y/n]? " ans; }
 
-usage () {
-    echo "Usage: sudo swiqlisp-install [<lisp>]
-Default lisp: SBCL"; }
+help_requested () {
+    if test "$1" = "-h" -o "$1" = "--help"; then
+	echo "$1"
+	exit 0;
+    fi; }
 
-need_root () {
-    echo "Root privileges required."; }
+check_root () {
+    if test $(id -u) -ne 0; then
+	echo "Root privileges required."
+	exit 1
+    fi; }
+
+ensure_no_trailing_slash () {
+    if test ${1: -1} = /; then echo -n ${1:0: -1}
+    else echo -n $1
+    fi ; }
 
 ensure_trailing_slash () {
     if test ${1: -1} = /; then echo -n $1
     else echo -n $1/
     fi ; }
 
-ensure_no_trailing_slash () {
-    if test ${1: -1} = /; then echo -n ${1:0: -1}
-    else echo -n $1
-    fi ; }
+swiqlisp_paths () {
+    # maybe fix SWIQLISP_DIR (defined in swiqlisp.rc)
+    SWIQLISP_DIR=$(ensure_no_trailing_slash $SWIQLISP_DIR)
+    # set SWIQLISP_PATHNAME (used by lisp)
+    SWIQLISP_PATHNAME=$(ensure_trailing_slash $SWIQLISP_DIR)
+    # debugging
+    if test $DEBUG = on; then
+	echo "swiQlisp directory (SWIQLISP_DIR): $SWIQLISP_DIR";
+    fi; }
+
+lisp_setup () {
+    if test ! -x "$LISP"; then
+	echo "$LISP not found in filesystem. Aborting. (Tip: use absolute paths)."
+	exit 1
+    fi
+    # set implementation specific values
+    case $LISP in
+	sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
+	    source swiqlisp-sbcl ;;
+        # add other lisps here
+	*)
+	    echo "Unknown lisp implementation: $LISP. Aborting."
+	    exit 1 ;;
+    esac ; }

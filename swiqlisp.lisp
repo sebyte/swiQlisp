@@ -19,10 +19,8 @@
 
 ;;; Commentary:
 ;;;
-;;;  This lisp source file is copied to ~swiqlisp by the installation script
-;;;  swiqlisp-install (where it is loaded by the lisp invoked each time the main
-;;;  site-wide management tool swiqlisp is run).
-
+;;;  This is the only lisp source file.  The rest of swiQlisp consists of shell
+;;;  scripts.
 
 (use-package "QL-DIST")
 
@@ -72,7 +70,7 @@
 (defun file-list (file)
   (let (lines)
     (with-open-file (filestream file)
-      (do ((line (read-line filestream) (read-line filestream nil 'eof)))
+      (do ((line (read-line filestream nil 'eof) (read-line filestream nil 'eof)))
           ((eq line 'eof))
         (push line lines)))
     (reverse lines)))
@@ -137,7 +135,7 @@
 
 (defun additional-systems-report ()
   (let ((newly-installed-systems
-         (file-list #p"installed-systems.new")))
+         (file-list (ql:qmerge #p"installed-systems.added"))))
     (format t "~%~d newly installed system~:p now available.~%~%"
             (length newly-installed-systems))
     (3col-write newly-installed-systems :reader #'pathname-name)))
@@ -161,11 +159,11 @@
         ;; install each system provided by the project in turn
         (dolist (system (reverse (provided-systems (find-release project-name)))
                  (format t "~%Project ~a successfully installed.~%~%" project-name))
-          (if (installedp (find-system (name system)))
+          (if (installedp system)
               (format t "~%System ~a already installed." (name system))
             (progn
               (format t "~%Installing system ~a:~%~%" (name system))
-              (ql:quickload (name system))))))
+              (install system)))))
     (format t "~%Project ~a not found.~%~%" project-name)))
 
 ;;; systems
@@ -180,5 +178,5 @@
   (if (system-existsp system-name)
       (if (system-installedp system-name)
           (format t "~%System ~a is already installed.~%~%" system-name)
-        (ql:quickload system-name))
+        (install (find-system system-name)))
     (format t "~%System ~a not found.~%~%" system-name)))

@@ -18,17 +18,20 @@
 
 # Commentary:
 #
-#  This script (swiqlisp-uninstall) is the site-wide Quicklisp removal tool,
-#  typically only used once.
+#  This script (swiqlisp-uninstall) is the site-wide Quicklisp removal tool.
 #
-#  Use the script swiqlisp to manage your site-wide Quicklisp installation on a
-#  day-to-day basis.
+#  Use the script 'swiqlisp' to manage your site-wide Quicklisp installation on
+#  a day-to-day basis.
 
+#-----------------------------------------------------------------------------
 source swiqlisp.rc
 source swiqlisp-utils
+help_requested "Usage: sudo ./swiqlisp-uninstall"
+check_root
+swiqlisp_paths
 
-if test $(id -u) -ne 0; then need_root; exit 1; fi
 
+#-----------------------------------------------------------------------------
 ask "Uninstall site-wide Quicklisp?  Confirm"
 
 if test "$ans" = "y" -o "$ans" = "Y"; then
@@ -36,6 +39,7 @@ if test "$ans" = "y" -o "$ans" = "Y"; then
 	rm -r $SWIQLISP_DIR
 	sleep 1
 	echo -e "Site-wide Quicklisp uninstalled."
+	source swiqlisp-stanza
     else
 	echo -e "Directory $SWIQLISP_DIR not found.
 

@@ -1,5 +1,26 @@
-# -*- shell-script -*-
+# -*- mode:shell-script; page-delimiter: "^#" -*-
 
+# Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
+#
+# This file is part of swiQlisp — site-wide Quicklisp.
+#
+# swiQlisp is free software: you can redistribute it and/or modify it under the
+# terms of the GNU General Public License as published by the Free Software
+# Foundation, either version 3 of the License, or (at your option) any later
+# version.
+#
+# swiQlisp is distributed in the hope that it will be useful, but WITHOUT ANY
+# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
+# A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with
+# swiQlisp.  If not, see <http://www.gnu.org/licenses/>
+
+# Commentary:
+#
+#  SBCL-specific settings
+
+#-----------------------------------------------------------------------------
 # invocation string
 if test $LISP_DEBUGGER = on; then
     INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
@@ -11,8 +32,18 @@ fi
 load=--load; eval=--eval; quit=--quit
 
 
+#-----------------------------------------------------------------------------
 # init file stanza
 SYSINIT_FILE=/etc/sbclrc
+if test $DEBUG = on; then
+    echo "$LISP site-wide initialisation file: $SYSINIT_FILE";
+fi
+
 INIT_FILE_STANZA="(require 'asdf)
 (push #p\"$SWIQLISP_DIR/installed-systems/\"
       asdf:*central-registry*)"
+
+# indent by one space
+INIT_FILE_STANZA_FOR_DISPLAY=" (require 'asdf)
+ (push #p\"$SWIQLISP_DIR/installed-systems/\"
+       asdf:*central-registry*)"

@@ -22,39 +22,17 @@
 #  This script (swiqlisp-install) is the site-wide Quicklisp installation tool,
 #  typically only used once.
 #
-#  Use the script swiqlisp to manage your site-wide Quicklisp installation on a
-#  day-to-day basis.
+#  Use the script 'swiqlisp' to manage your site-wide Quicklisp installation on
+#  a day-to-day basis.
 
-set -e
-
+#-----------------------------------------------------------------------------
 source swiqlisp.rc
 source swiqlisp-utils
+help_requested "Usage: sudo ./swiqlisp-install"
+check_root
+swiqlisp_paths
+lisp_setup
 
-#-----------------------------------------------------------------------------
-# check command line args
-if test "$LISP" = "-h" -o "$1" = "--help"; then usage; exit 1; fi
-# check for root privs
-if test $(id -u) -ne 0; then need_root; exit 1; fi
-# set SWIQLISP_PATHNAME (used by lisp)  and maybe fix SWIQLISP_DIR
-SWIQLISP_PATHNAME=$(ensure_trailing_slash $SWIQLISP_DIR)
-SWIQLISP_DIR=$(ensure_no_trailing_slash $SWIQLISP_DIR)
-if test $DEBUG = on; then echo "swiQlisp directory (SWIQLISP_DIR): $SWIQLISP_DIR"; fi
-# test for user's' lisp
-if test ! -x "$LISP"; then
-    echo "$LISP not found. Aborting. (Tip: use absolute paths)."
-    exit 1
-fi
-
-#-----------------------------------------------------------------------------
-# setup for user's lisp
-case $LISP in
-    sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
-	source swiqlisp-sbcl ;;
-    # add other lisps here
-    *)
-	echo "Unknown lisp implementation; $LISP. Aborting."
-	exit 1 ;;
-esac
 
 #-----------------------------------------------------------------------------
 # prepare swiqlisp installation directory
@@ -63,7 +41,6 @@ QUICKLISP_DIR=$SWIQLISP_DIR/quicklisp
 QUICKSTART_FILE=$SWIQLISP_DIR/quicklisp.lisp
 LISP_ERRLOG=$SWIQLISP_DIR/lisp-error.log
 
-cp -f swiqlisp.lisp $SWIQLISP_DIR  # force copying allows for updates
 if test -d $QUICKLISP_DIR; then
     echo "Site-wide Quicklisp is already installed."
     exit 1
@@ -77,10 +54,12 @@ else
 fi
 # setup installed-systems files
 touch $SWIQLISP_DIR/installed-systems.current
-touch $SWIQLISP_DIR/installed-systems.new
+touch $SWIQLISP_DIR/installed-systems.added
+touch $SWIQLISP_DIR/installed-systems.removed
 touch $SWIQLISP_DIR/installed-systems.old
 # setup installed-systems dir
 mkdir -p $SWIQLISP_DIR/installed-systems
+
 
 #-----------------------------------------------------------------------------
 # install Quicklisp
@@ -109,46 +88,8 @@ else # success
 fi
 
 #-----------------------------------------------------------------------------
-# write/remove init file stanza
-init_file_stanza_start=';;; swiQlisp stanza begin - DO NOT EDIT this comment'
-init_file_stanza_end=';;; swiQlisp stanza end - DO NOT EDIT this comment'
-# line numbers
-existing_stanza_start=$(grep -xne "$init_file_stanza_start" $SYSINIT_FILE |\
-                        cut -d: -f1)
-existing_stanza_end=$(grep -xne "$init_file_stanza_end" $SYSINIT_FILE |\
-                      cut -d: -f1)
+# add/remove the swiQlisp stanza
+source swiqlisp-stanza
 
-if test -n "$existing_stanza_start" -a -n "$existing_stanza_end"; then
-    # swiqlisp stanza exists
-    ask "Your system-wide init file ($SYSINIT_FILE) already includes
-the swiQlisp stanza:
-
-$INIT_FILE_STANZA
-
-Remove it"
-    if test "$ans" = "y" -o "$ans" = "Y"; then
-	sed_script="${existing_stanza_start},${existing_stanza_end}d"
-	sed -i $sed_script $SYSINIT_FILE
-	echo "swiQlisp stanza removed."
-    else
-	echo "File untouched."
-    fi
-else
-    # no swiqlisp stanza exists
-    ask "Append
-
-$INIT_FILE_STANZA
-
-to the system-wide init file ($SYSINIT_FILE)"
-
-    if test "$ans" = "y" -o "$ans" = "Y"; then
-	echo "
-$init_file_stanza_start
-$INIT_FILE_STANZA
-$init_file_stanza_end
-" >> $SYSINIT_FILE
-	echo "swiQlisp stanza added."
-    else
-	echo "File untouched."
-    fi
-fi
+#-----------------------------------------------------------------------------
+echo "swiQlisp successfully installed."
