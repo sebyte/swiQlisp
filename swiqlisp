@@ -27,7 +27,7 @@
 #  instance.
 
 #-----------------------------------------------------------------------------
-#set -e				# grep returns exit code 1 if no matches are found
+#set -e                         # grep returns exit code 1 if no matches are found
 source swiqlisp.rc
 source swiqlisp-utils
 
@@ -50,34 +50,34 @@ rotate_installed_systems_files () {
     echo -n "" > $SWIQLISP_DIR/installed-systems.added
     echo -n "" > $SWIQLISP_DIR/installed-systems.removed
     mv -f $SWIQLISP_DIR/installed-systems.current \
-	$SWIQLISP_DIR/installed-systems.old
+        $SWIQLISP_DIR/installed-systems.old
     # FIXME - how to handle multiple dists?
     cat $SWIQLISP_DIR/dists/quicklisp/installed/systems/*.txt | sort \
-	> $SWIQLISP_DIR/installed-systems.current
+        > $SWIQLISP_DIR/installed-systems.current
     # systems that have just been added
     grep -v -f $SWIQLISP_DIR/installed-systems.old \
-	$SWIQLISP_DIR/installed-systems.current \
-	> $SWIQLISP_DIR/installed-systems.added
+        $SWIQLISP_DIR/installed-systems.current \
+        > $SWIQLISP_DIR/installed-systems.added
     # systems that have just been removed
     grep -v -f $SWIQLISP_DIR/installed-systems.current \
-	$SWIQLISP_DIR/installed-systems.old \
-	> $SWIQLISP_DIR/installed-systems.removed; }
+        $SWIQLISP_DIR/installed-systems.old \
+        > $SWIQLISP_DIR/installed-systems.removed; }
 
 write_links_to_additional_system_files () {
     for system in $(cat $SWIQLISP_DIR/installed-systems.added); do
-	ln -s  ../$system $SWIQLISP_DIR/installed-systems/
+        ln -s  ../$system $SWIQLISP_DIR/installed-systems/
     done; }
 
 remove_links_to_removed_system_files () {
     for system in $(cat $SWIQLISP_DIR/installed-systems.removed); do
-	echo remove me - $system
+        echo remove me - $system
     done; }
 
 refresh_system_links () {
     # for debugging purposes only
     rm -f $SWIQLISP_DIR/installed-systems/*.asd
     for system in $(cat $SWIQLISP_DIR/installed-systems.current); do
-	ln -s  ../$system $SWIQLISP_DIR/installed-systems/
+        ln -s  ../$system $SWIQLISP_DIR/installed-systems/
     done; }
 
 #-----------------------------------------------------------------------------
@@ -103,36 +103,33 @@ additional_systems_report () {
     eval $LISP_COMMAND; }
 
 install () {
-    EVAL="'(install-$1 \"$OBJECT\")'"
+    EVAL="'(install-$1 \"$OBJECT\" $2)'"
     ERRLOG="/tmp/install-${1}_${OBJECT}_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
     if test $DEBUG = on; then eval echo $LISP_COMMAND | tr -s \ ; fi
     eval $LISP_COMMAND
     if [ -s $ERRLOG ]; then
-	echo -e "\n\nAn error occurred. See $ERRLOG for more information.\n"
-	exit 1
-    else # success
-	rm $ERRLOG # empty
-	rotate_installed_systems_files
-	write_links_to_additional_system_files
-	additional_systems_report
-    fi; }
-
-# if test -s $SWIQLISP_DIR/installed-systems.added; then
-# fi
+        echo -e "\n\nLisp output on stderr. See $ERRLOG for more information.\n"
+    else # success, so
+        rm $ERRLOG # because it's empty
+    fi
+    rotate_installed_systems_files
+    write_links_to_additional_system_files
+    additional_systems_report ;}
 
 #-----------------------------------------------------------------------------
 # top level
 
 case $ACTION in
-           projects) list projects;;
-            systems) list systems;;
-    project-systems) list project_systems;; # unimplemented
-    install-project) install project;;
-     install-system) install system;;
-     remove-project) remove_system;;        # unimplemented
-      remove-system) remove_system;;	    # unimplemented
-     system-apropos) system_apropos;;
-   refresh-syslinks) refresh_system_links;;
-                  *) echo "Unknown action.  Aborting." && exit 1;;
+                   projects) list projects;;
+                    systems) list systems;;
+            project-systems) list project_systems;; # unimplemented
+           #install-project) install project;;
+     install|install-system) install system;;
+        install-and-compile) install system t;;
+         #uninstall-project) uninstall project;;    # unimplemented
+ uninstall|uninstall-system) uninstall system;;     # unimplemented
+             system-apropos) system_apropos;;
+           refresh-syslinks) refresh_system_links;;
+                          *) echo "Unknown action.  Aborting." && exit 1;;
 esac
