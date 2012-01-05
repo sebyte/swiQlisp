@@ -25,13 +25,12 @@
 #-----------------------------------------------------------------------------
 ask () { read -p "$1 [y/n]? " ans; }
 
-help_requested () {
+check_help () {
     if test "$1" = "-h" -o "$1" = "--help"; then
-	echo "$1"
-	exit 0;
+	echo "$1"; exit 0;
     fi; }
 
-check_root () {
+check_root_privileges () {
     if test $(id -u) -ne 0; then
 	echo "Root privileges required."
 	exit 1
@@ -42,22 +41,25 @@ ensure_no_trailing_slash () {
     else echo -n $1
     fi ; }
 
-ensure_trailing_slash () {
-    if test ${1: -1} = /; then echo -n $1
-    else echo -n $1/
-    fi ; }
+# ensure_trailing_slash () {
+#     if test ${1: -1} = /; then echo -n $1
+#     else echo -n $1/
+#     fi ; }
 
-swiqlisp_paths () {
-    # maybe fix SWIQLISP_DIR (defined in swiqlisp.rc)
-    SWIQLISP_DIR=$(ensure_no_trailing_slash $SWIQLISP_DIR)
-    # set SWIQLISP_PATHNAME (used by lisp)
-    SWIQLISP_PATHNAME=$(ensure_trailing_slash $SWIQLISP_DIR)
+check_sysusr_home () {
+    # remove trailing slash in SYSUSR_HOME (if any)
+    SYSUSR_HOME=$(ensure_no_trailing_slash $SYSUSR_HOME)
+    # check that parent directory exists
+    if test ! -d $(dirname $SYSUSR_HOME); then
+	echo "Warning: $(dirname $SYSUSR_HOME) not found."
+    fi
     # debugging
     if test $DEBUG = on; then
-	echo "swiQlisp directory (SWIQLISP_DIR): $SWIQLISP_DIR";
+	echo "debug: SYSUSR=$SYSUSR"
+	echo "debug: SYSUSR_HOME=$SYSUSR_HOME";
     fi; }
 
-lisp_setup () {
+check_lisp_and_setup_accordingly () {
     if test ! -x "$LISP"; then
 	echo "$LISP not found in filesystem. Aborting. (Tip: use absolute paths)."
 	exit 1
@@ -70,4 +72,9 @@ lisp_setup () {
 	*)
 	    echo "Unknown lisp implementation: $LISP. Aborting."
 	    exit 1 ;;
-    esac ; }
+    esac
+    # debugging
+    if test $DEBUG = on; then
+	echo "debug: LISP=$LISP"
+	echo "debug: SYSINIT_FILE=$SYSINIT_FILE"
+    fi ; }

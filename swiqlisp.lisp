@@ -79,17 +79,20 @@
 (defun system-existsp (system-name)
   (find-system system-name))
 
+(defun release-existsp (release-name)
+  (find-release release-name))
+
 (defun system-installedp (system-name)
   (let ((system-obj (find-system system-name)))
     (installedp system-obj)))
 
 (defun fetch-system-plus-dependencies (system-name)
-  ;; fetch system
+  ;; fetch 'main' system
   (if (asdf:find-system system-name nil) ; use ASDF's FIND-SYSTEM to allow for
                                          ; sb-* systems, and allow missing
       (format t "~%System ~a is already installed." system-name)
     (install (find-system system-name)))
-  ;; check for dependencies
+  ;; now fetch dependencies
   (let ((dependencies
          ;; COMPONENT-DEPENDS-ON returns a list within a list.  The first item
          ;; in the inner list in the name of the class of operation, in this
@@ -134,6 +137,14 @@
             (3col-write available-systems :reader #'name)))
         (all-dists)))
 
+(defun list-release-systems (release-name)
+  (if (release-existsp release-name)
+      (let ((release-systems (provided-systems (find-release release-name))))
+        (format t "~%The ~a release includes ~d system~:p:~%~%"
+                release-name (length release-systems))
+        (3col-write release-systems :reader #'name))
+    (format t "~%Release ~a not found.~%~%" release-name)))
+
 (defun swiqlisp-apropos (term)
   (let (matches)
     (flet ((matcher (system)
@@ -144,16 +155,16 @@
       (format t "~%~d matching system~:p found:~%~%" (length matches))
       (3col-write matches :reader #'name))))
 
-;; projects
-(defun list-installed-projects ()
+;; releases
+(defun list-installed-releases ()
   (mapc (lambda (d)
           (let ((installed-releases (installed-releases d)))
-            (format t "~%~d project~:p installed from distribution: ~a~%~%"
+            (format t "~%~d release~:p installed from distribution: ~a~%~%"
                     (length installed-releases) (name d))
             (3col-write installed-releases :reader #'name)))
         (all-dists)))
 
-(defun list-available-projects ()
+(defun list-available-releases ()
   (mapc (lambda (d)
           (let* ((provided-releases (provided-releases d))
                  (installed-releases (installed-releases d))
@@ -161,7 +172,7 @@
                   (remove-if (lambda (r)
                                (member r installed-releases :test #'equal))
                              provided-releases)))
-            (format t "~%~d other project~:p available from distribution: ~a~%~%"
+            (format t "~%~d other release~:p available from distribution: ~a~%~%"
                     (length available-releases) (name d))
             (3col-write available-releases :reader #'name)))
         (all-dists)))
@@ -169,41 +180,36 @@
 
 
 ;;; ============================================================================
-;;; top level installation functions
+;;; top level (un)installation functions
+
+(defun install-system (system-name &optional no-compile-p)
+  (if (system-existsp system-name)
+      (if no-compile-p
+          (fetch-system-plus-dependencies system-name)
+        (ql:quickload system-name))
+    (format t "~%System ~a not found.~%~%" system-name)))
 
 (defun additional-systems-report ()
   (let ((newly-installed-systems
-         (file-list (ql:qmerge #p"installed-systems.added"))))
+         (file-list (ql:qmerge #p"../tmp/installed-systems.added"))))
     (format t "~%~d newly installed system~:p now available.~%~%"
             (length newly-installed-systems))
     (3col-write newly-installed-systems :reader #'pathname-name)))
 
-(defun install-system (system-name &optional compile-p)
+(defun uninstall-system (system-name)
   (if (system-existsp system-name)
-      (if compile-p
-          (ql:quickload system-name)
-        (fetch-system-plus-dependencies system-name))
+      (uninstall (find-system system-name))
     (format t "~%System ~a not found.~%~%" system-name)))
 
+(defun removed-systems-report ()
+  (let ((newly-removed-systems
+         (file-list (ql:qmerge #p"../tmp/installed-systems.removed"))))
+    (format t "~%~d newly removed system~:p no longer available.~%~%"
+            (length newly-removed-systems))
+    (3col-write newly-removed-systems :reader #'pathname-name)))
 
+
+;;; ============================================================================
+;;; self-update
 
-;; (defun project-existsp (project-name)
-;;   (find-release project-name))
-
-;; (defun project-installedp (project-name)
-;;   (let ((project-obj (find-release project-name)))
-;;     (installedp project-obj)))
-
-;; (defun install-project (project-name)
-;;   (if (project-existsp project-name)
-;;       (if (project-installedp project-name)
-;;           (format t "~%Project ~a is already installed.~%~%" project-name)
-;;         ;; install each system provided by the project in turn
-;;         (dolist (system (reverse (provided-systems (find-release project-name)))
-;;                  (format t "~%Project ~a successfully installed.~%~%" project-name))
-;;           (if (installedp system)
-;;               (format t "~%System ~a already installed." (name system))
-;;             (progn
-;;               (format t "~%Installing system ~a:~%~%" (name system))
-;;               (install system)))))
-;;     (format t "~%Project ~a not found.~%~%" project-name)))
+(defun self-update () (ql:update-client))

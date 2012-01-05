@@ -26,24 +26,32 @@
 #-----------------------------------------------------------------------------
 source swiqlisp.rc
 source swiqlisp-utils
-help_requested "Usage: sudo ./swiqlisp-uninstall"
-check_root
-swiqlisp_paths
+check_help "Usage: ./swiqlisp-uninstall"
+check_root_privileges
+check_sysusr_home
 
 
 #-----------------------------------------------------------------------------
+
+if test -z "$(id -u $SYSUSR 2>/dev/null)"; then
+    # no SYSUSR
+    echo "SYSUSR ($SYSUSR) does not exist.
+
+If you are certain that swiQlisp is installed, the most likely explanation is
+that the value of SYSUSR has changed.  Please check ./swiqlisp.rc."
+    exit 1;
+fi
+
 ask "Uninstall site-wide Quicklisp?  Confirm"
 
 if test "$ans" = "y" -o "$ans" = "Y"; then
-    if test -d $SWIQLISP_DIR; then
-	rm -r $SWIQLISP_DIR
-	sleep 1
-	echo -e "Site-wide Quicklisp uninstalled."
-	source swiqlisp-stanza
-    else
-	echo -e "Directory $SWIQLISP_DIR not found.
-
-If you're certain swiQlisp is installed, the most likely explanation is that the
-value of SWIQLISP_DIR has been altered (in swiqlisp.rc)."
-    fi
+    # uninstall by removing the system user and its home directory
+    userdel --remove $SYSUSR
+    sleep 1
+    echo "Sytem user '$SYSUSR' with home directory '$SYSUSR_HOME' removed."
+    echo "swiQlisp successfully uninstalled."
+    # run swiqlisp-stanza
+    source swiqlisp-stanza
+else
+    echo "Uninstallation operation aborted."
 fi

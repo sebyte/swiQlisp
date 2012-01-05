@@ -20,10 +20,22 @@
 #
 #  This is the swiQlisp configuration file.
 
+# executables
 SU=/bin/su
 LISP=/usr/local/bin/sbcl
-SWIQLISP_DIR=/usr/share/common-lisp/swiqlisp
 
+# the unprivileged user account
+SYSUSR=swiqlisp
+SYSUSR_HOME=/usr/share/common-lisp/swiqlisp
+
+# set to 'on' to see the output of external processes (not including lisp)
+# default 'off'
 VERBOSE=off
+
+# set to on to see swiqlisp's own debugging messages
+# default 'off'
 DEBUG=off
+
+# set to on to enable the built-in lisp debugger of your chosen lisp (if any)
+# default 'off'
 LISP_DEBUGGER=off

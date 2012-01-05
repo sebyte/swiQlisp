@@ -24,10 +24,10 @@
 # invocation string
 if test $LISP_DEBUGGER = on; then
     INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
-                 --no-sysinit --no-userinit --noprint"
+--no-sysinit --no-userinit --noprint"
 else
     INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
-                 --disable-debugger --no-sysinit --no-userinit --noprint"
+--disable-debugger --no-sysinit --no-userinit --noprint"
 fi
 load=--load; eval=--eval; quit=--quit
 
@@ -35,15 +35,12 @@ load=--load; eval=--eval; quit=--quit
 #-----------------------------------------------------------------------------
 # init file stanza
 SYSINIT_FILE=/etc/sbclrc
-if test $DEBUG = on; then
-    echo "$LISP site-wide initialisation file: $SYSINIT_FILE";
-fi
 
 INIT_FILE_STANZA="(require 'asdf)
-(push #p\"$SWIQLISP_DIR/installed-systems/\"
+(push #p\"$SYSUSR_HOME/installed-systems/\"
       asdf:*central-registry*)"
 
 # indent by one space
 INIT_FILE_STANZA_FOR_DISPLAY=" (require 'asdf)
- (push #p\"$SWIQLISP_DIR/installed-systems/\"
+ (push #p\"$SYSUSR_HOME/installed-systems/\"
        asdf:*central-registry*)"

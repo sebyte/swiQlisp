@@ -26,25 +26,57 @@
 #  a day-to-day basis.
 
 #-----------------------------------------------------------------------------
+# Initialise variables and perform sanity checks
+
 source swiqlisp.rc
 source swiqlisp-utils
-help_requested "Usage: sudo ./swiqlisp-install"
-check_root
-swiqlisp_paths
-lisp_setup
+check_help "Usage: sudo ./swiqlisp-install"
+check_root_privileges
+check_sysusr_home
+check_lisp_and_setup_accordingly
 
 
 #-----------------------------------------------------------------------------
-# prepare swiqlisp installation directory
-mkdir -p $SWIQLISP_DIR
-QUICKLISP_DIR=$SWIQLISP_DIR/quicklisp
-QUICKSTART_FILE=$SWIQLISP_DIR/quicklisp.lisp
-LISP_ERRLOG=$SWIQLISP_DIR/lisp-error.log
+# Prepare swiqlisp installation directory
+
+if test -z "$(id -u $SYSUSR 2>/dev/null)"; then
+    # no existing SYSUSR so remove any old SYSUSR_HOME which may exist and
+    # create SYSUSR and SYSUSR_HOME afresh
+    rm -rf $SYSUSR_HOME
+    if test $VERBOSE = on; then
+	adduser --system --home $SYSUSR_HOME --shell /bin/sh \
+                --disabled-login $SYSUSR
+    else
+	adduser --quiet --system --home $SYSUSR_HOME --shell /bin/sh \
+                --disabled-login $SYSUSR
+    fi
+    echo \
+"Created system user '$SYSUSR' with ID $(id -u $SYSUSR) and \
+home directory '$SYSUSR_HOME'."
+else
+    if test ! -d $SYSUSR_HOME; then
+	# pre-existing SYSUSR user but no SYSUSR home
+	usermod --home $SYSUSR_HOME $SYSUSR
+	echo \
+"Created home directory '$SYSUSR_HOME' for existing system user '$SYSUSR' \
+with ID $(id -u $SYSUSR)."
+    else
+        # pre-existing SYSUSR and SYSUSR_HOME
+	echo \
+"System user '$SYSUSR' with ID $(id -u $SYSUSR) and home directory \
+'$SYSUSR_HOME' already exists.  Leaving both untouched."
+    fi
+fi
+
+QUICKLISP_DIR=$SYSUSR_HOME/quicklisp
+QUICKSTART_FILE=$SYSUSR_HOME/quicklisp.lisp
+LISP_ERRLOG=$SYSUSR_HOME/lisp-error.log
 
 if test -d $QUICKLISP_DIR; then
     echo "Site-wide Quicklisp is already installed."
     exit 1
 fi
+
 # fetch Quicklisp quickstart file (overwrites any existing quickstart file)
 if test $VERBOSE = on; then
     wget -O $QUICKSTART_FILE http://beta.quicklisp.org/quicklisp.lisp
@@ -52,31 +84,45 @@ else
     echo "Fetching Quicklisp quickstart file from quicklisp.org ..."
     wget -q -O $QUICKSTART_FILE http://beta.quicklisp.org/quicklisp.lisp
 fi
-# setup installed-systems files
-touch $SWIQLISP_DIR/installed-systems.current
-touch $SWIQLISP_DIR/installed-systems.added
-touch $SWIQLISP_DIR/installed-systems.removed
-touch $SWIQLISP_DIR/installed-systems.old
+
+
+# setup tmp directory
+mkdir -p $SYSUSR_HOME/tmp
+chown -R $SYSUSR:nogroup $SYSUSR_HOME/tmp
+# initialise installed-systems files
+touch $SYSUSR_HOME/tmp/installed-systems.current \
+      $SYSUSR_HOME/tmp/installed-systems.added \
+      $SYSUSR_HOME/tmp/installed-systems.removed \
+      $SYSUSR_HOME/tmp/installed-systems.old
+chown $SYSUSR:nogroup $SYSUSR_HOME/tmp/installed-systems.current \
+      $SYSUSR_HOME/tmp/installed-systems.added \
+      $SYSUSR_HOME/tmp/installed-systems.removed \
+      $SYSUSR_HOME/tmp/installed-systems.old
+
 # setup installed-systems dir
-mkdir -p $SWIQLISP_DIR/installed-systems
+mkdir -p $SYSUSR_HOME/installed-systems
+chown -R $SYSUSR:nogroup $SYSUSR_HOME/installed-systems
 
 
 #-----------------------------------------------------------------------------
-# install Quicklisp
-LISP_COMMAND='$SU -c "$INVOC $COMMANDS"'
+# Install Quicklisp
+
+LISP_COMMAND='$SU -c "$INVOC $COMMANDS" $SYSUSR'
 # INVOC is defined in swiqlisp-<impl> files
-EVAL="'(quicklisp-quickstart:install :path \"$SWIQLISP_PATHNAME\")'"
+
+EVAL="'(quicklisp-quickstart:install)'"
+
 if test $VERBOSE = on; then
     COMMANDS="$load $QUICKSTART_FILE $eval $EVAL $quit 2>$LISP_ERRLOG"
 else
     echo "Installing Quicklisp site-wide ..."
     COMMANDS="$load $QUICKSTART_FILE $eval $EVAL $quit 1>/dev/null 2>$LISP_ERRLOG"
 fi
-if test $DEBUG = on; then
-    # write the command for visual inspection
-    eval echo $LISP_COMMAND; fi
-# go!
+[ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
+
+# run lisp
 eval $LISP_COMMAND
+
 # check for errors
 if test -s $LISP_ERRLOG; then
     echo "An error occurred.  See $LISP_ERRLOG for details."
@@ -84,7 +130,7 @@ if test -s $LISP_ERRLOG; then
 else # success
     rm $LISP_ERRLOG # empty
     rm $QUICKSTART_FILE
-    echo "Site-wide Quicklisp installed under $SWIQLISP_DIR."
+    echo "Site-wide Quicklisp installed under $SYSUSR_HOME."
 fi
 
 #-----------------------------------------------------------------------------

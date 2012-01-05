@@ -3,16 +3,18 @@
 			 ==============================
 
 Tools for installing Quicklisp site-wide and then managing that installation
-(using lisp implementation of choice).
+(using a lisp implementation of your choice).
 
-Works by creating a system user 'swiqlisp' whose home directory is in a
-site-wide location (currently /usr/share/common-lisp/swiqlisp) and then running
-lisp as that system user. Symbolic links pointing to system definition files are
-then created under a single directory; ~swiqlisp/installed-systems/.
+Works by creating an unprivileged system user 'swiqlisp' whose home directory is
+in a site-wide location (default /usr/share/common-lisp/swiqlisp) and then
+running lisp as that system user.  Symbolic links pointing to system definition
+files are gathered together under a single directory; ~swiqlisp/installed-systems/.
 
 Unprivileged users can then use ASDF:LOAD-SYSTEM to load these site-wide
 installed Quicklisp libraries by simply adding ~swiqlisp/installed-systems/ to
-their ASDF:*CENTRAL-REGISTRY*.
+their ASDF:*CENTRAL-REGISTRY*.  To assist with this last step, the system
+administrator is asked whether or not she would like to add a stanza to the
+site-wide lisp initialisation file to this effect when installing swiqlisp.
 
 
 INSTALL
@@ -24,11 +26,15 @@ INSTALL
 USAGE
 -----
 
- $ sudo ./swiqlisp <action> [<project-or-system>] [<lisp>]
+ $ sudo ./swiqlisp <query-or-action> [<system>] [<lisp>]
+
+Queries implemented so far:
+
+ releases systems release-systems system-apropos
 
 Actions implemented so far:
 
- projects systems install-{project|system} system-apropos
+ install install-no-compile uninstall self-update refresh-system-links
 
 Default lisp: sbcl
 
@@ -36,10 +42,7 @@ Default lisp: sbcl
 TODO
 ----
 
- - /root/.cache/common-lisp/... Is this good?  Do we even need to compile stuff?
-
- - A configure script for setting swiqlisp home directory location & generating
-   swiqlisp.rc (which should include: choice of lisp... and what else?)
+ - A configure script for generating a swiqlisp.rc
 
  - As well as installing Quicklisp under ~swiqlisp, swiqlisp-install should put:
 
@@ -47,9 +50,6 @@ TODO
     swiqlisp.rc   under /etc/
 
  - Invocations for lisps other than sbcl.
-
- - New commands: project-systems, remove-system, update-dist, update-client (is
-                 self-update a better name?)
 
  - Site-wide SLIME?
 

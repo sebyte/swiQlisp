@@ -35,10 +35,10 @@
 #-----------------------------------------------------------------------------
 source swiqlisp.rc
 source swiqlisp-utils
-help_requested "Usage: sudo ./swiqlisp-stanza"
-check_root
-swiqlisp_paths
-lisp_setup # needed only for value of SYSINIT_FILE
+check_help "Usage: sudo ./swiqlisp-stanza"
+check_root_privileges
+check_sysusr_home
+check_lisp_and_setup_accordingly # needed for value of SYSINIT_FILE
 
 
 #-----------------------------------------------------------------------------
