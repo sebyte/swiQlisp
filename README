@@ -30,11 +30,19 @@ USAGE
 
 Queries implemented so far:
 
- releases systems release-systems system-apropos
+ releases
+ systems
+ release-systems
+ system-apropos
 
 Actions implemented so far:
 
- install install-no-compile uninstall self-update refresh-system-links
+ install
+ install-no-compile
+ uninstall
+ update-systems
+ self-update
+ refresh-system-links
 
 Default lisp: sbcl
 
@@ -42,15 +50,23 @@ Default lisp: sbcl
 TODO
 ----
 
- - A configure script for generating a swiqlisp.rc
-
- - As well as installing Quicklisp under ~swiqlisp, swiqlisp-install should put:
-
-    swiqlisp      under /usr/sbin/
-    swiqlisp.rc   under /etc/
-
- - Invocations for lisps other than sbcl.
+ - Invocations for lisps other than SBCL.
 
  - Site-wide SLIME?
 
  - Modify ask () so that it presents a default answer (capitalised).
+
+ - Work out why, with a fresh swiqlisp, 'install' hunchentoot says that "30
+   newly installed systems are now availiable" but if you then run 'systems'
+   you'll see that 35 systems are in fact installed.
+
+
+Debian package considerations
+-----------------------------
+ - Interactively generate /etc/swiqlisp.rc
+
+ - Do the work of swiqlisp-install and swiqlisp-uninstall by package scripts
+
+ - /usr/sbin/swiqlisp
+
+ - Where does swiqlisp.lisp go?
