@@ -34,6 +34,7 @@ source swiqlisp.rc
 source swiqlisp-utils
 
 TMP_DIR=$SYSUSR_HOME/tmp
+LOG_DIR=$TMP_DIR/log
 ACTION=$1; OBJECT=$2
 usage="Usage: sudo ./swiqlisp <action> [<object>]"
 
@@ -137,7 +138,7 @@ removed_systems_report () {
 
 install () {
     EVAL="'(install-$1 \"$OBJECT\" $2)'"
-    ERRLOG="$TMP_DIR/install-${1}_${OBJECT}_error.log"
+    ERRLOG="$LOG_DIR/install-${1}_${OBJECT}_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND"
@@ -152,7 +153,7 @@ install () {
 
 uninstall () {
     EVAL="'(uninstall-$1 \"$OBJECT\")'"
-    ERRLOG="$TMP_DIR/uninstall-${1}_${OBJECT}_error.log"
+    ERRLOG="$LOG_DIR/uninstall-${1}_${OBJECT}_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND"
@@ -167,7 +168,7 @@ uninstall () {
 
 self_update () {
     EVAL="'(self-update)'"
-    ERRLOG="$TMP_DIR/self-update_error.log"
+    ERRLOG="$LOG_DIR/self-update_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND"
@@ -179,7 +180,7 @@ self_update () {
 
 update_systems () {
     EVAL="'(update-systems)'"
-    ERRLOG="$TMP_DIR/update-systems_error.log"
+    ERRLOG="$LOG_DIR/update-systems_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND"
