@@ -37,11 +37,11 @@ check_lisp_and_setup_accordingly
 
 
 #-----------------------------------------------------------------------------
-# Prepare swiqlisp installation directory
+# Create and populate SYSUSR_HOME
 
 if test -z "$(id -u $SYSUSR 2>/dev/null)"; then
     # no existing SYSUSR so remove any old SYSUSR_HOME which may exist and
-    # create SYSUSR and SYSUSR_HOME afresh
+    # create SYSUSR and SYSUSR_HOME anew
     rm -rf $SYSUSR_HOME
     if test $VERBOSE = on; then
 	adduser --system --home $SYSUSR_HOME --shell /bin/sh \
@@ -51,20 +51,20 @@ if test -z "$(id -u $SYSUSR 2>/dev/null)"; then
                 --disabled-login $SYSUSR
     fi
     echo \
-"Created system user '$SYSUSR' with ID $(id -u $SYSUSR) and \
-home directory '$SYSUSR_HOME'."
+"Created system user $SYSUSR with ID $(id -u $SYSUSR) and \
+home directory $SYSUSR_HOME."
 else
     if test ! -d $SYSUSR_HOME; then
 	# pre-existing SYSUSR user but no SYSUSR home
 	usermod --home $SYSUSR_HOME $SYSUSR
 	echo \
-"Created home directory '$SYSUSR_HOME' for existing system user '$SYSUSR' \
+"Created home directory $SYSUSR_HOME for existing system user $SYSUSR \
 with ID $(id -u $SYSUSR)."
     else
         # pre-existing SYSUSR and SYSUSR_HOME
 	echo \
-"System user '$SYSUSR' with ID $(id -u $SYSUSR) and home directory \
-'$SYSUSR_HOME' already exists.  Leaving both untouched."
+"System user $SYSUSR with ID $(id -u $SYSUSR) and home directory \
+$SYSUSR_HOME already exists.  Leaving both untouched."
     fi
 fi
 
@@ -89,21 +89,24 @@ fi
 # setup tmp directory
 mkdir -p $SYSUSR_HOME/tmp
 mkdir -p $SYSUSR_HOME/tmp/log
-chown -R $SYSUSR:nogroup $SYSUSR_HOME/tmp
 # initialise installed-systems files
 touch $SYSUSR_HOME/tmp/installed-systems.current \
       $SYSUSR_HOME/tmp/installed-systems.added \
       $SYSUSR_HOME/tmp/installed-systems.removed \
       $SYSUSR_HOME/tmp/installed-systems.old
-chown $SYSUSR:nogroup $SYSUSR_HOME/tmp/installed-systems.current \
       $SYSUSR_HOME/tmp/installed-systems.added \
       $SYSUSR_HOME/tmp/installed-systems.removed \
       $SYSUSR_HOME/tmp/installed-systems.old
 
 # setup installed-systems dir
 mkdir -p $SYSUSR_HOME/installed-systems
-chown -R $SYSUSR:nogroup $SYSUSR_HOME/installed-systems
 
+# install swiqlisp.lisp and swiqlisp-slime-helper.el
+cp -f swiqlisp.lisp swiqlisp-slime-helper.el $SYSUSR_HOME
+
+# quicklisp/ and .cache/ are already owned by SYSUSR
+# so there's no harm in this blanket chown
+chown -R $SYSUSR:nogroup $SYSUSR_HOME
 
 #-----------------------------------------------------------------------------
 # Install Quicklisp
