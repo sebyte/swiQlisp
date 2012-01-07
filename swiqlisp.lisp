@@ -33,7 +33,7 @@
       str
     (format nil "~a..." (subseq str 0 (- width 3)))))
 
-(defun split-list (l)
+(defun groups-of-three (l)
   (let ((numthrees (floor (length l) 3)) ones twos threes)
     (dotimes (i numthrees)
       (push (pop l) ones) (push (pop l) twos) (push (pop l) threes))
@@ -50,7 +50,11 @@
                              col-width col-width col-width))
         (straggler-format (format nil " ~~~da" col-width)))
     (multiple-value-bind (leftcol midcol rightcol stragglers)
-        (split-list objects)
+        (groups-of-three
+         (sort objects (lambda (a b)
+                         (when (string< (funcall reader a)
+                                        (funcall reader b))
+                           t))))
       ;; threes
       (mapc (lambda (objX objY objZ)
               (format t 3col-format
@@ -68,7 +72,7 @@
         (terpri))
       (terpri))))
 
-(defun file-list (file)
+(defun disk-file-to-list (file)
   (let (lines)
     (with-open-file (filestream file)
       (do ((line (read-line filestream nil 'eof) (read-line filestream nil 'eof)))
@@ -191,7 +195,7 @@
 
 (defun additional-systems-report ()
   (let ((newly-installed-systems
-         (file-list (ql:qmerge #p"../tmp/installed-systems.added"))))
+         (disk-file-to-list (ql:qmerge #p"../tmp/installed-systems.added"))))
     (format t "~%~d newly installed system~:p now available.~%~%"
             (length newly-installed-systems))
     (3col-write newly-installed-systems :reader #'pathname-name)))
@@ -203,13 +207,15 @@
 
 (defun removed-systems-report ()
   (let ((newly-removed-systems
-         (file-list (ql:qmerge #p"../tmp/installed-systems.removed"))))
+         (disk-file-to-list (ql:qmerge #p"../tmp/installed-systems.removed"))))
     (format t "~%~d newly removed system~:p no longer available.~%~%"
             (length newly-removed-systems))
     (3col-write newly-removed-systems :reader #'pathname-name)))
 
 
 ;;; ============================================================================
-;;; self-update
+;;; update functions
 
 (defun self-update () (ql:update-client))
+
+(defun update-systems () (ql:update-all-dists))
