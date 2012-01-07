@@ -54,8 +54,6 @@ TODO
 
  - Site-wide SLIME?
 
- - Modify ask () so that it presents a default answer (capitalised).
-
  - Work out why, with a fresh swiqlisp, 'install' hunchentoot says that "30
    newly installed systems are now availiable" but if you then run 'systems'
    you'll see that 35 systems are in fact installed.
