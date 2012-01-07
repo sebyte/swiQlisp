@@ -23,7 +23,18 @@
 
 
 #-----------------------------------------------------------------------------
-ask () { read -p "$1 [y/n]? " ans; }
+y-or-n-with-default-answer () {
+    # $1 = question, $2 = optional default answer (y or n)
+    if test -z "$2" -o "$2" = "y" -o "$2" = "Y"; then default=y; fi
+    if test "$default" = "y"; then
+	prompt_string="[Y/n]"
+    else
+	default=n; prompt_string="[y/N]"
+    fi
+
+    read -p "$1 $prompt_string? " ans
+
+    if test -z "$ans"; then ans=$default; fi; }
 
 check_help () {
     if test "$1" = "-h" -o "$1" = "--help"; then

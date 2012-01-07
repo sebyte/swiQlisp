@@ -42,7 +42,7 @@ that the value of SYSUSR has changed.  Please check ./swiqlisp.rc."
     exit 1;
 fi
 
-ask "Uninstall site-wide Quicklisp?  Confirm"
+y-or-n-with-default-answer "Uninstall site-wide Quicklisp?  Confirm" n
 
 if test "$ans" = "y" -o "$ans" = "Y"; then
     # uninstall by removing the system user and its home directory
