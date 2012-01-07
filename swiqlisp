@@ -94,8 +94,9 @@ refresh_system_links () {
 # lisp command & functions which use it
 
 LISP_COMMAND='$SU -c \
-"$INVOC $load $SYSUSR_HOME/quicklisp/setup $load swiqlisp.lisp $COMMANDS" \
-$SYSUSR'
+"$INVOC $load $SYSUSR_HOME/quicklisp/setup \
+        $load $SYSUSR_HOME/swiqlisp.lisp \
+        $COMMANDS" $SYSUSR'
 
 LISP_ERROR_MSG='\\nA Lisp error occurred.  See:\\n\\n $ERRLOG\\n\\nfor more information.'
 
