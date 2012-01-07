@@ -80,10 +80,10 @@
         (push line lines)))
     (reverse lines)))
 
-(defun system-existsp (system-name)
+(defun system-exists-p (system-name)
   (find-system system-name))
 
-(defun release-existsp (release-name)
+(defun release-exists-p (release-name)
   (find-release release-name))
 
 (defun system-installedp (system-name)
@@ -142,12 +142,29 @@
         (all-dists)))
 
 (defun list-release-systems (release-name)
-  (if (release-existsp release-name)
+  (if (release-exists-p release-name)
       (let ((release-systems (provided-systems (find-release release-name))))
         (format t "~%The ~a release includes ~d system~:p:~%~%"
                 release-name (length release-systems))
         (3col-write release-systems :reader #'name))
     (format t "~%Release ~a not found.~%~%" release-name)))
+
+(defun list-dependencies (system-name)
+  (if (system-exists-p system-name)
+      (let* ((direct-dependencies (required-systems (find-system system-name)))
+             (all-dependencies direct-dependencies))
+        (labels ((find-sub-dependencies (system-names)
+                   (mapc
+                    (lambda (sys-name)
+                      (pushnew sys-name all-dependencies :test #'equal)
+                      (find-sub-dependencies ; recursively
+                       (required-systems (find-system sys-name))))
+                    system-names)))
+          (find-sub-dependencies direct-dependencies)
+          (format t "~%~a depends on the following ~d systems:~%~%"
+                  system-name (length all-dependencies))
+          (3col-write all-dependencies)))
+    (format t "~%System ~a not found.~%~%" system-name)))
 
 (defun swiqlisp-apropos (term)
   (let (matches)
@@ -187,7 +204,7 @@
 ;;; top level (un)installation functions
 
 (defun install-system (system-name &optional no-compile-p)
-  (if (system-existsp system-name)
+  (if (system-exists-p system-name)
       (if no-compile-p
           (fetch-system-plus-dependencies system-name)
         (ql:quickload system-name))
@@ -201,7 +218,7 @@
     (3col-write newly-installed-systems :reader #'pathname-name)))
 
 (defun uninstall-system (system-name)
-  (if (system-existsp system-name)
+  (if (system-exists-p system-name)
       (uninstall (find-system system-name))
     (format t "~%System ~a not found.~%~%" system-name)))
 
