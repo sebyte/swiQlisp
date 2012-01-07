@@ -70,7 +70,7 @@ fi
 
 QUICKLISP_DIR=$SYSUSR_HOME/quicklisp
 QUICKSTART_FILE=$SYSUSR_HOME/quicklisp.lisp
-LISP_ERRLOG=$SYSUSR_HOME/lisp-error.log
+LISP_ERRLOG=$SYSUSR_HOME/tmp/log/lisp-error.log
 
 if test -d $QUICKLISP_DIR; then
     echo "Site-wide Quicklisp is already installed."
@@ -88,6 +88,7 @@ fi
 
 # setup tmp directory
 mkdir -p $SYSUSR_HOME/tmp
+mkdir -p $SYSUSR_HOME/tmp/log
 chown -R $SYSUSR:nogroup $SYSUSR_HOME/tmp
 # initialise installed-systems files
 touch $SYSUSR_HOME/tmp/installed-systems.current \
