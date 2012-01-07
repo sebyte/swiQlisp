@@ -61,12 +61,12 @@ rotate_installed_systems_files () {
     chown $SYSUSR:nogroup $TMP_DIR/installed-systems.old
     # update 'current' (FIXME - how to handle multiple dists?)
     cat $SYSUSR_HOME/quicklisp/dists/quicklisp/installed/systems/*.txt 2>/dev/null \
-	| sort > $TMP_DIR/installed-systems.current # [1]
+        | sort > $TMP_DIR/installed-systems.current # [1]
     chown $SYSUSR:nogroup $TMP_DIR/installed-systems.current
     # establish which systems have just been added
     grep -v -f $TMP_DIR/installed-systems.old \
         $TMP_DIR/installed-systems.current \
-	| sort > $TMP_DIR/installed-systems.added
+        | sort > $TMP_DIR/installed-systems.added
     # establish which systems have just been removed
     grep -v -f $TMP_DIR/installed-systems.current \
         $TMP_DIR/installed-systems.old \
@@ -79,7 +79,7 @@ write_links_to_additional_system_files () {
 
 remove_links_to_removed_system_files () {
     for system in $(cat $TMP_DIR/installed-systems.removed); do
-	rm $SYSUSR_HOME/installed-systems/$(basename $system)
+        rm $SYSUSR_HOME/installed-systems/$(basename $system)
     done; }
 
 refresh_system_links () {
@@ -107,6 +107,12 @@ list () {
 
 list_release_systems () {
     EVAL="'(list-release-systems \"$OBJECT\")'"
+    COMMANDS="$eval $EVAL $quit"
+    [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
+    eval "$LISP_COMMAND" ; }
+
+list_dependencies () {
+    EVAL="'(list-dependencies \"$OBJECT\")'"
     COMMANDS="$eval $EVAL $quit"
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND" ; }
@@ -187,28 +193,32 @@ update_systems () {
 # top level
 
 case $ACTION in
-    #          command line  shell function       $1        $2
-    #          ------------  --------------    	  --        --
-    # queries
-                   releases) list              	  releases     ;;
-                    systems) list              	  systems      ;;
-            release-systems) list_release_systems              ;; # $OBJECT req'd
-             system-apropos) system_apropos    	               ;; # $OBJECT req'd
-    # actions
-     install|install-system) install           	  system       ;; # $OBJECT req'd
-         install-no-compile) install           	  system    t  ;; # $OBJECT req'd [2]
- uninstall|uninstall-system) uninstall         	  system       ;; # $OBJECT req'd
-             update-systems) update_systems                    ;;
-                self-update) self_update       	               ;;
-    # maintenance
-       refresh-system-links) refresh_system_links              ;;
+     #          command line  shell function       $1        $2
+     #          ------------  --------------       --        --
+     # queries
+                    releases) list                 releases     ;; # no OBJECT req'd
+                     systems) list                 systems      ;; # no OBJECT req'd
+             release-systems) list_release_systems              ;; # test on xcvb
+ depends|system-dependencies) list_dependencies                 ;;
+              system-apropos) system_apropos                    ;;
+     # actions
+      install|install-system) install              system       ;;
+          install-no-compile) install              system    t  ;; # [2]
+  uninstall|uninstall-system) uninstall            system       ;;
+#            install-release) install              release      ;;
+# install-release-no-compile) install              release   t  ;;
+#          uninstall-release) uninstall            release      ;;
+              update-systems) update_systems                    ;; # no OBJECT req'd
+                 self-update) self_update                       ;; # no OBJECT req'd
+     # maintenance
+        refresh-system-links) refresh_system_links              ;; # no OBJECT req'd
 
-                          *) echo "Unknown action.  Aborting." && exit 1 ;;
+                           *) echo "Unknown action.  Aborting." && exit 1 ;;
 esac
 
 # [1] When the last system has been uninstalled, there are no .txt files
 #     remaining, so we must redirect stderr to /dev/null in order to muffle the
 #     cat.
-#
+
 # [2] Some systems require compilation for their dependencies to be handled
 #     correctly

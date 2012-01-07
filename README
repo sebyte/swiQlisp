@@ -33,6 +33,7 @@ Queries implemented so far:
  releases
  systems
  release-systems
+ depends
  system-apropos
 
 Actions implemented so far:
