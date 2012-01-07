@@ -54,8 +54,7 @@ existing_stanza_end=$(grep -xne "$init_file_stanza_end" $SYSINIT_FILE |\
 if test -n "$existing_stanza_begin" -a -n "$existing_stanza_end"; then
     # swiqlisp stanza exists
     y-or-n-with-default-answer \
-"Your system-wide init file ($SYSINIT_FILE) includes
-the swiQlisp stanza:
+"Your system-wide init file ($SYSINIT_FILE) includes the swiQlisp stanza:
 
 $INIT_FILE_STANZA_FOR_DISPLAY
 
