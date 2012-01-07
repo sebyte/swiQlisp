@@ -86,7 +86,7 @@
 (defun release-exists-p (release-name)
   (find-release release-name))
 
-(defun system-installedp (system-name)
+(defun system-installed-p (system-name)
   (let ((system-obj (find-system system-name)))
     (installedp system-obj)))
 
@@ -205,9 +205,11 @@
 
 (defun install-system (system-name &optional no-compile-p)
   (if (system-exists-p system-name)
-      (if no-compile-p
-          (fetch-system-plus-dependencies system-name)
-        (ql:quickload system-name))
+      (if (system-installed-p system-name)
+          (format t "~%System ~a is already installed.~%~%" system-name)
+        (if no-compile-p
+            (fetch-system-plus-dependencies system-name)
+          (ql:quickload system-name)))
     (format t "~%System ~a not found.~%~%" system-name)))
 
 (defun additional-systems-report ()
@@ -219,7 +221,9 @@
 
 (defun uninstall-system (system-name)
   (if (system-exists-p system-name)
-      (uninstall (find-system system-name))
+      (if (system-installed-p system-name)
+          (uninstall (find-system system-name))
+        (format t "~%System ~a is not installed.~%~%" system-name))
     (format t "~%System ~a not found.~%~%" system-name)))
 
 (defun removed-systems-report ()
