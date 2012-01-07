@@ -55,9 +55,9 @@ TODO
 
  - Site-wide SLIME?
 
- - Work out why, with a fresh swiqlisp, 'install' hunchentoot says that "30
-   newly installed systems are now availiable" but if you then run 'systems'
-   you'll see that 35 systems are in fact installed.
+ - Work out precisely why, with a fresh swiqlisp, 'install' hunchentoot says
+   that "30 newly installed systems are now availiable" but if you then run
+   'systems' you'll see that 35 systems are in fact installed.
 
 
 Debian package considerations
@@ -68,4 +68,4 @@ Debian package considerations
 
  - /usr/sbin/swiqlisp
 
- - Where does swiqlisp.lisp go?
+ - Write post-installation message about using swiQlisp SLIME
