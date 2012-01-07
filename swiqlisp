@@ -33,6 +33,7 @@
 source swiqlisp.rc
 source swiqlisp-utils
 
+TMP_DIR=$SYSUSR_HOME/tmp
 ACTION=$1; OBJECT=$2
 usage="Usage: sudo ./swiqlisp <action> [<object>]"
 
@@ -50,8 +51,6 @@ check_lisp_and_setup_accordingly
 #-----------------------------------------------------------------------------
 # shell functions
 
-TMP_DIR=$SYSUSR_HOME/tmp/
-
 rotate_installed_systems_files () {
     # truncate the two 'difference' files
     echo -n "" > $TMP_DIR/installed-systems.added
@@ -67,11 +66,11 @@ rotate_installed_systems_files () {
     # establish which systems have just been added
     grep -v -f $TMP_DIR/installed-systems.old \
         $TMP_DIR/installed-systems.current \
-        > $TMP_DIR/installed-systems.added
+	| sort > $TMP_DIR/installed-systems.added
     # establish which systems have just been removed
     grep -v -f $TMP_DIR/installed-systems.current \
         $TMP_DIR/installed-systems.old \
-        > $TMP_DIR/installed-systems.removed; }
+        | sort > $TMP_DIR/installed-systems.removed; }
 
 write_links_to_additional_system_files () {
     for system in $(cat $TMP_DIR/installed-systems.added); do
@@ -97,6 +96,8 @@ LISP_COMMAND='$SU -c \
 "$INVOC $load $SYSUSR_HOME/quicklisp/setup $load swiqlisp.lisp $COMMANDS" \
 $SYSUSR'
 
+LISP_ERROR_MSG='\\nA Lisp error occurred.  See:\\n\\n $ERRLOG\\n\\nfor more information.'
+
 list () {
     EVAL1="'(list-installed-$1)'"
     EVAL2="'(list-available-$1)'"
@@ -108,7 +109,7 @@ list_release_systems () {
     EVAL="'(list-release-systems \"$OBJECT\")'"
     COMMANDS="$eval $EVAL $quit"
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
-    eval "$LISP_COMMAND" ; } # $LISP_COMMAND must be quoted here
+    eval "$LISP_COMMAND" ; }
 
 system_apropos () {
     EVAL="'(swiqlisp-apropos \"$OBJECT\")'"
@@ -130,12 +131,12 @@ removed_systems_report () {
 
 install () {
     EVAL="'(install-$1 \"$OBJECT\" $2)'"
-    ERRLOG="/tmp/install-${1}_${OBJECT}_error.log"
+    ERRLOG="$TMP_DIR/install-${1}_${OBJECT}_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND"
     if [ -s $ERRLOG ]; then
-        echo -e "\n\nLisp output on stderr. See $ERRLOG for more information.\n"
+        eval echo -e $LISP_ERROR_MSG
     else # success, so
         rm $ERRLOG # because it's empty
     fi
@@ -145,12 +146,12 @@ install () {
 
 uninstall () {
     EVAL="'(uninstall-$1 \"$OBJECT\")'"
-    ERRLOG="/tmp/uninstall-${1}_${OBJECT}_error.log"
+    ERRLOG="$TMP_DIR/uninstall-${1}_${OBJECT}_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND"
     if [ -s $ERRLOG ]; then
-        echo -e "\n\nLisp output on stderr. See $ERRLOG for more information.\n"
+        eval echo -e $LISP_ERROR_MSG
     else # success, so
         rm $ERRLOG # because it's empty
     fi
@@ -160,12 +161,24 @@ uninstall () {
 
 self_update () {
     EVAL="'(self-update)'"
-    ERRLOG="/tmp/self-update_error.log"
+    ERRLOG="$TMP_DIR/self-update_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND"
     if [ -s $ERRLOG ]; then
-        echo -e "\n\nLisp output on stderr. See $ERRLOG for more information.\n"
+        eval echo -e $LISP_ERROR_MSG
+    else # success, so
+        rm $ERRLOG # because it's empty
+    fi ; }
+
+update_systems () {
+    EVAL="'(update-systems)'"
+    ERRLOG="$TMP_DIR/update-systems_error.log"
+    COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
+    [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
+    eval "$LISP_COMMAND"
+    if [ -s $ERRLOG ]; then
+        eval echo -e $LISP_ERROR_MSG
     else # success, so
         rm $ERRLOG # because it's empty
     fi ; }
@@ -185,6 +198,7 @@ case $ACTION in
      install|install-system) install           	  system       ;; # $OBJECT req'd
          install-no-compile) install           	  system    t  ;; # $OBJECT req'd [2]
  uninstall|uninstall-system) uninstall         	  system       ;; # $OBJECT req'd
+             update-systems) update_systems                    ;;
                 self-update) self_update       	               ;;
     # maintenance
        refresh-system-links) refresh_system_links              ;;
