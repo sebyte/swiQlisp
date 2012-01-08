@@ -28,14 +28,11 @@ LISP=/usr/local/bin/sbcl
 SYSUSR=swiqlisp
 SYSUSR_HOME=/usr/share/common-lisp/swiqlisp
 
-# set to 'on' to see the output of external processes (not including lisp)
-# default 'off'
+# switch on to see the output of external processes (not including lisp)
 VERBOSE=off
 
-# set to on to see swiqlisp's own debugging messages
-# default 'off'
+# switch on to see swiqlisp's own debugging messages
 DEBUG=off
 
-# set to on to enable the built-in lisp debugger of your chosen lisp (if any)
-# default 'off'
+# switch on to enable the built-in lisp debugger of your chosen lisp (if any)
 LISP_DEBUGGER=off
