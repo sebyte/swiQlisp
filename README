@@ -65,14 +65,15 @@ must install the Quicklisp package 'swank':
 Do not install the package 'quicklisp-slime-helper'.  It assumes Quicklisp is
 installed under your home directory and will not work as expected.
 
-Finally, add the following line:
+Then add the following line:
 
- (load "~swiqlisp/slime-helper.el")
+ (load (expand-file-name "~swiqlisp/swiqlisp-slime-helper.el"))
 
 to your ~/.emacs init file (and remove any existing Quicklisp SLIME
 configuration).
 
-Restart Emacs and you should be good to go.
+Finally, restart Emacs and you should be good to go.
+
 
 TODO
 ----

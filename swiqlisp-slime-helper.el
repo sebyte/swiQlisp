@@ -23,12 +23,12 @@
 ;;;
 ;;;  Simply add the following line:
 ;;;
-;;;   (load "~swiqlisp/slime-helper.el")
+;;;   (load (expand-file-name "~swiqlisp/slime-helper.el"))
 ;;;
 ;;;  to your ~/.emacs init file (and remove any existing Quicklisp SLIME
 ;;;  configuration).
 ;;;
-;;;  For some reason SLIME is called 'swank' in Quicklisp so don't forget to:
+;;;  SLIME is called 'swank' in Quicklisp so don't forget to:
 ;;;
 ;;;   $ sudo swiqlisp install swank
 ;;;
