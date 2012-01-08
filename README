@@ -5,10 +5,11 @@
 Tools for installing Quicklisp site-wide and then managing that installation
 (using a lisp implementation of your choice).
 
-Works by creating an unprivileged system user 'swiqlisp' whose home directory is
-in a site-wide location (default /usr/share/common-lisp/swiqlisp) and then
-running lisp as that system user.  Symbolic links pointing to system definition
-files are gathered together under a single directory; ~swiqlisp/installed-systems/.
+Works by creating an unprivileged system user (default swiqlisp) whose home
+directory is in a site-wide location (default /usr/share/common-lisp/swiqlisp)
+and then running lisp as that system user.  Symbolic links pointing to system
+definition files are gathered together under a single directory;
+~swiqlisp/installed-systems/.
 
 Unprivileged users can then use ASDF:LOAD-SYSTEM to load these site-wide
 installed Quicklisp libraries by simply adding ~swiqlisp/installed-systems/ to
@@ -50,11 +51,33 @@ Actions implemented so far:
 Default lisp: sbcl
 
 
+swiQlisp SLIME USAGE
+--------------------
+
+'swank' is the name of the Common Lisp component of SLIME (the Superior Lisp
+Interaction Mode for Emacs) the rest of which is written in Emacs Lisp.  For
+this reason, SLIME is called 'swank' in Quicklisp (since Quicklisp is a Common
+Lisp library manager, not an Emacs Lisp library manager) so first of all you
+must install the Quicklisp package 'swank':
+
+ $ sudo swiqlisp install swank
+
+Do not install the package 'quicklisp-slime-helper'.  It assumes Quicklisp is
+installed under your home directory and will not work as expected.
+
+Finally, add the following line:
+
+ (load "~swiqlisp/slime-helper.el")
+
+to your ~/.emacs init file (and remove any existing Quicklisp SLIME
+configuration).
+
+Restart Emacs and you should be good to go.
+
 TODO
 ----
- • Fix non-privileged queries.
 
- • Write post-installation message about using swiQlisp SLIME.
+ • Fix non-privileged queries.
 
  • Work out precisely why, with a fresh swiqlisp, 'install' hunchentoot says
    that "30 newly installed systems are now availiable" but if you then run
