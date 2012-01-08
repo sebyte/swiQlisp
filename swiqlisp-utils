@@ -80,25 +80,13 @@ add_remove_swiqlisp_stanza () {
     existing_stanza_end=$(grep -xne "$init_file_stanza_end" $SYSINIT_FILE |\
                       cut -d: -f1)
 
-    if test -n "$existing_stanza_begin" -a -n "$existing_stanza_end"; then
-        # swiqlisp stanza exists
+    # ----------------------------------------------------------------------
+    # install & no swiqlisp stanza exists
+    if test $(basename $0) = "swiqlisp-install" -a \
+            ! \( -n "$existing_stanza_begin" -o \
+                 -n "$existing_stanza_end" \); then
         y-or-n-with-default-answer \
-            "Your system-wide init file ($SYSINIT_FILE) includes the swiQlisp stanza:
-
-$INIT_FILE_STANZA_FOR_DISPLAY
-
-Would you like to remove it" n
-        if test "$ans" = "y" -o "$ans" = "Y"; then
-            sed_script="${existing_stanza_begin},${existing_stanza_end}d"
-            sed -i $sed_script $SYSINIT_FILE
-            echo "swiQlisp stanza removed."
-        else
-            echo "System-wide init file ($SYSINIT_FILE) untouched."
-        fi
-    else
-        # no swiqlisp stanza exists
-        y-or-n-with-default-answer \
-            "Would you like to append the following stanza:
+"Would you like to append the following stanza:
 
 $INIT_FILE_STANZA_FOR_DISPLAY
 
@@ -111,6 +99,40 @@ $INIT_FILE_STANZA
 $init_file_stanza_end
 " >> $SYSINIT_FILE
             echo "swiQlisp stanza added."
+            exit 0
+        else
+            echo "System-wide init file ($SYSINIT_FILE) untouched."
+            exit 0
+        fi
+    fi
+
+    # ----------------------------------------------------------------------
+    # uninstall & swiqlisp stanza exists
+    if test $(basename $0) = "swiqlisp-uninstall" -a \
+            -n "$existing_stanza_begin" -a \
+            -n "$existing_stanza_end"; then
+        # no questions asked
+        sed_script="${existing_stanza_begin},${existing_stanza_end}d"
+        sed -i $sed_script $SYSINIT_FILE
+        echo "swiQlisp stanza removed from system-wide init file ($SYSINIT_FILE)."
+        exit 0
+    fi
+
+    # ----------------------------------------------------------------------
+    # install & swiqlisp stanza already exists (this shouldn't really happen)
+    if test $(basename $0) = "swiqlisp-install" -a \
+            -n "$existing_stanza_begin" -a \
+            -n "$existing_stanza_end"; then
+        y-or-n-with-default-answer \
+"Your system-wide init file ($SYSINIT_FILE) already includes the swiQlisp stanza:
+
+$INIT_FILE_STANZA_FOR_DISPLAY
+
+Would you like to remove it" n
+        if test "$ans" = "y" -o "$ans" = "Y"; then
+            sed_script="${existing_stanza_begin},${existing_stanza_end}d"
+            sed -i $sed_script $SYSINIT_FILE
+            echo "swiQlisp stanza removed."
         else
             echo "System-wide init file ($SYSINIT_FILE) untouched."
         fi
