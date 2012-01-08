@@ -26,7 +26,9 @@ INSTALL
 USAGE
 -----
 
- $ sudo ./swiqlisp <query-or-action> [<system>] [<lisp>]
+ $ [sudo] swiqlisp <query-or-action> [<system>] [<lisp>]
+
+ (Queries do not require root privileges.  Actions do.)
 
 Queries implemented so far:
 
@@ -50,22 +52,14 @@ Default lisp: sbcl
 
 TODO
 ----
+ • Fix non-privileged queries.
 
- - Invocations for lisps other than SBCL.
+ • Write post-installation message about using swiQlisp SLIME.
 
- - Site-wide SLIME?
-
- - Work out precisely why, with a fresh swiqlisp, 'install' hunchentoot says
+ • Work out precisely why, with a fresh swiqlisp, 'install' hunchentoot says
    that "30 newly installed systems are now availiable" but if you then run
    'systems' you'll see that 35 systems are in fact installed.
 
+ • Invocations for lisps other than SBCL.
 
-Debian package considerations
------------------------------
- - Interactively generate /etc/swiqlisp.rc
-
- - Do the work of swiqlisp-install and swiqlisp-uninstall by package scripts
-
- - /usr/sbin/swiqlisp
-
- - Write post-installation message about using swiQlisp SLIME
+ • Package collections.
