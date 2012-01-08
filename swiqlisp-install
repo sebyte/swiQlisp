@@ -26,15 +26,35 @@
 #  a day-to-day basis.
 
 #-----------------------------------------------------------------------------
-# Initialise variables and perform sanity checks
+# utility function
+ensure_no_trailing_slash () {
+    if test ${1: -1} = /; then echo -n ${1:0: -1}
+    else echo -n $1
+    fi ; }
+
+#-----------------------------------------------------------------------------
+# source ./swiqlisp.rc, ./swiqlisp-utils & perform sanity checks
 
 source swiqlisp.rc
 source swiqlisp-utils
 check_help "Usage: sudo ./swiqlisp-install"
 check_root_privileges
-check_sysusr_home
 check_lisp_and_setup_accordingly
 
+# remove trailing slash in SYSUSR_HOME (if any)
+SYSUSR_HOME=$(ensure_no_trailing_slash $SYSUSR_HOME)
+
+# check that SYSUSR_HOME parent directory exists
+if test ! -d $(dirname $SYSUSR_HOME); then
+    echo "Error: $(dirname $SYSUSR_HOME) not found."
+    exit 1
+fi
+
+# debugging
+if test $DEBUG = on; then
+    echo "debug: SYSUSR=$SYSUSR"
+    echo "debug: SYSUSR_HOME=$SYSUSR_HOME";
+fi;
 
 #-----------------------------------------------------------------------------
 # Create and populate SYSUSR_HOME
@@ -94,19 +114,28 @@ touch $SYSUSR_HOME/tmp/installed-systems.current \
       $SYSUSR_HOME/tmp/installed-systems.added \
       $SYSUSR_HOME/tmp/installed-systems.removed \
       $SYSUSR_HOME/tmp/installed-systems.old
-      $SYSUSR_HOME/tmp/installed-systems.added \
-      $SYSUSR_HOME/tmp/installed-systems.removed \
-      $SYSUSR_HOME/tmp/installed-systems.old
 
 # setup installed-systems dir
 mkdir -p $SYSUSR_HOME/installed-systems
 
-# install swiqlisp.lisp and swiqlisp-slime-helper.el
-cp -f swiqlisp.lisp swiqlisp-slime-helper.el $SYSUSR_HOME
+# copy files
+cp -f \
+    swiqlisp-sbcl \
+    swiqlisp-slime-helper.el \
+    swiqlisp-utils \
+    swiqlisp.lisp \
+    $SYSUSR_HOME
 
-# quicklisp/ and .cache/ are already owned by SYSUSR
-# so there's no harm in this blanket chown
+# no harm in this blanket chown
 chown -R $SYSUSR:nogroup $SYSUSR_HOME
+
+#-----------------------------------------------------------------------------
+# /etc, /usr/bin & /usr/sbin
+
+cp -f swiqlisp.rc     /etc
+cp -f swiqlisp        /usr/bin
+cp -f swiqlisp-stanza /usr/sbin
+chmod a+x swiqlisp swiqlisp-stanza
 
 #-----------------------------------------------------------------------------
 # Install Quicklisp
@@ -139,7 +168,7 @@ fi
 
 #-----------------------------------------------------------------------------
 # add/remove the swiQlisp stanza
-source swiqlisp-stanza
+swiqlisp-stanza
 
 #-----------------------------------------------------------------------------
 echo "swiQlisp successfully installed."

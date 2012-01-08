@@ -47,30 +47,21 @@ check_root_privileges () {
 	exit 1
     fi; }
 
-ensure_no_trailing_slash () {
-    if test ${1: -1} = /; then echo -n ${1:0: -1}
-    else echo -n $1
-    fi ; }
-
 # ensure_trailing_slash () {
 #     if test ${1: -1} = /; then echo -n $1
 #     else echo -n $1/
 #     fi ; }
 
-check_sysusr_home () {
-    # remove trailing slash in SYSUSR_HOME (if any)
-    SYSUSR_HOME=$(ensure_no_trailing_slash $SYSUSR_HOME)
-    # check that parent directory exists
-    if test ! -d $(dirname $SYSUSR_HOME); then
-	echo "Warning: $(dirname $SYSUSR_HOME) not found."
-    fi
-    # debugging
-    if test $DEBUG = on; then
-	echo "debug: SYSUSR=$SYSUSR"
-	echo "debug: SYSUSR_HOME=$SYSUSR_HOME";
-    fi; }
-
 check_lisp_and_setup_accordingly () {
+    # this function is used at installation time (when implementation files are
+    # found under ./) AND at installation time (when they are found under
+    # $SYSUSR_HOME)
+    if test $(basename $0) = "swiqlisp-install"; then
+	implementation_files=.
+    else
+	implementation_files=$SYSUSR_HOME
+    fi
+
     if test ! -x "$LISP"; then
 	echo "$LISP not found in filesystem. Aborting. (Tip: use absolute paths)."
 	exit 1
@@ -78,7 +69,7 @@ check_lisp_and_setup_accordingly () {
     # set implementation specific values
     case $LISP in
 	sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
-	    source swiqlisp-sbcl ;;
+	    source $implementation_files/swiqlisp-sbcl ;;
         # add other lisps here
 	*)
 	    echo "Unknown lisp implementation: $LISP. Aborting."

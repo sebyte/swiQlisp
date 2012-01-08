@@ -26,27 +26,53 @@
 #  Use the script swiqlisp-install to install Quicklisp site-wide in the first
 #  instance.
 
-#-----------------------------------------------------------------------------
-# Initialise variables and perform sanity checks
-
 #set -e                         # grep returns exit code 1 if no matches are found
-source swiqlisp.rc
-source swiqlisp-utils
 
-TMP_DIR=$SYSUSR_HOME/tmp
-LOG_DIR=$TMP_DIR/log
-ACTION=$1; OBJECT=$2
-usage="Usage: sudo ./swiqlisp <action> [<object>]"
+#-----------------------------------------------------------------------------
+# utility function
+ensure_no_trailing_slash () {
+    if test ${1: -1} = /; then echo -n ${1:0: -1}
+    else echo -n $1
+    fi ; }
 
+#-----------------------------------------------------------------------------
+# source /etc/swiqlisp.rc & $SYSUSR_HOME/swiqlisp-utils
+
+if test -r /etc/swiqlisp.rc; then
+    source /etc/swiqlisp.rc
+else
+    echo "Error: /etc/swiqlisp.rc not found.  Aborting."
+    exit 1
+fi
+
+# remove trailing slash in SYSUSR_HOME (if any)
+SYSUSR_HOME=$(ensure_no_trailing_slash $SYSUSR_HOME)
+
+if test -r $SYSUSR_HOME/swiqlisp-utils; then
+    source $SYSUSR_HOME/swiqlisp-utils
+else
+    echo "Error: $SYSUSR_HOME/swiqlisp-utils not found.  Aborting."
+    exit 1
+fi
+
+# debugging
+if test $DEBUG = on; then
+    echo "debug: SYSUSR=$SYSUSR"
+    echo "debug: SYSUSR_HOME=$SYSUSR_HOME";
+fi;
+
+#-----------------------------------------------------------------------------
+# variables, sanity checks on command line args, lisp check/setup
+
+TMP_DIR=$SYSUSR_HOME/tmp; LOG_DIR=$TMP_DIR/log; ACTION=$1; OBJECT=$2
+
+usage="Usage: [sudo] swiqlisp <query-or-action> [<object>]"
 check_help "$usage"
-
 if test \( "${ACTION:0:7}" = "install" -o "${ACTION:0:6}" = "remove" \) -a \
         -z "$OBJECT"; then
     echo "$usage"; exit 0
 fi
 
-check_root_privileges # FIXME - unprivileged users should be able to do some things
-check_sysusr_home
 check_lisp_and_setup_accordingly
 
 #-----------------------------------------------------------------------------
@@ -138,6 +164,7 @@ removed_systems_report () {
     eval "$LISP_COMMAND" ; }
 
 install () {
+    check_root_privileges
     EVAL="'(install-$1 \"$OBJECT\" $2)'"
     ERRLOG="$LOG_DIR/install-${1}_${OBJECT}_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
@@ -153,6 +180,7 @@ install () {
     additional_systems_report ; }
 
 uninstall () {
+    check_root_privileges
     EVAL="'(uninstall-$1 \"$OBJECT\")'"
     ERRLOG="$LOG_DIR/uninstall-${1}_${OBJECT}_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
@@ -168,6 +196,7 @@ uninstall () {
     removed_systems_report ; }
 
 self_update () {
+    check_root_privileges
     EVAL="'(self-update)'"
     ERRLOG="$LOG_DIR/self-update_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
@@ -180,6 +209,7 @@ self_update () {
     fi ; }
 
 update_systems () {
+    check_root_privileges
     EVAL="'(update-systems)'"
     ERRLOG="$LOG_DIR/update-systems_error.log"
     COMMANDS="$eval $EVAL $quit 2>$ERRLOG"

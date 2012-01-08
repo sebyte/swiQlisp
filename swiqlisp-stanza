@@ -33,13 +33,44 @@
 #
 
 #-----------------------------------------------------------------------------
-source swiqlisp.rc
-source swiqlisp-utils
+# utility function
+ensure_no_trailing_slash () {
+    if test ${1: -1} = /; then echo -n ${1:0: -1}
+    else echo -n $1
+    fi ; }
+
+#-----------------------------------------------------------------------------
+# source /etc/swiqlisp.rc & $SYSUSR_HOME/swiqlisp-utils
+
+if test -r /etc/swiqlisp.rc; then
+    source /etc/swiqlisp.rc
+else
+    echo "Error: /etc/swiqlisp.rc not found.  Aborting."
+    exit 1
+fi
+
+# remove trailing slash in SYSUSR_HOME (if any)
+SYSUSR_HOME=$(ensure_no_trailing_slash $SYSUSR_HOME)
+
+if test -r $SYSUSR_HOME/swiqlisp-utils; then
+    source $SYSUSR_HOME/swiqlisp-utils
+else
+    echo "Error: $SYSUSR_HOME/swiqlisp-utils not found.  Aborting."
+    exit 1
+fi
+
+# debugging
+if test $DEBUG = on; then
+    echo "debug: SYSUSR=$SYSUSR"
+    echo "debug: SYSUSR_HOME=$SYSUSR_HOME";
+fi;
+
+#-----------------------------------------------------------------------------
+# sanity checks on command line args, lisp check/setup
+
 check_help "Usage: sudo ./swiqlisp-stanza"
 check_root_privileges
-check_sysusr_home
 check_lisp_and_setup_accordingly # needed for value of SYSINIT_FILE
-
 
 #-----------------------------------------------------------------------------
 # write/remove init file stanza

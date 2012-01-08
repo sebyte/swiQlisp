@@ -45,10 +45,10 @@ fi
 y-or-n-with-default-answer "Uninstall site-wide Quicklisp?  Confirm" n
 
 if test "$ans" = "y" -o "$ans" = "Y"; then
-    # uninstall by removing the system user and its home directory
+    rm -f /etc/swiqlisp.rc /usr/bin/swiqlisp /usr/sbin/swiqlisp-stanza
     userdel --remove $SYSUSR
     sleep 1
-    echo "Sytem user '$SYSUSR' with home directory '$SYSUSR_HOME' removed."
+    echo "Sytem user $SYSUSR with home directory $SYSUSR_HOME removed."
     echo "swiQlisp successfully uninstalled."
     # run swiqlisp-stanza
     source swiqlisp-stanza
