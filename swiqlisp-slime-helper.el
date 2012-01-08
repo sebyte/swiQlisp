@@ -30,7 +30,7 @@
 ;;;
 ;;;  For some reason SLIME is called 'swank' in Quicklisp so don't forget to:
 ;;;
-;;;   $ sudo ./swiqlisp install swank
+;;;   $ sudo swiqlisp install swank
 ;;;
 ;;;  before restarting Emacs.  Do not use swiQlisp to install the package
 ;;;  'quicklisp-slime-helper'.  It assumes Quicklisp is installed under your
