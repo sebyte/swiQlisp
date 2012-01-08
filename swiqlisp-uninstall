@@ -24,14 +24,44 @@
 #  a day-to-day basis.
 
 #-----------------------------------------------------------------------------
-source swiqlisp.rc
-source swiqlisp-utils
-check_help "Usage: ./swiqlisp-uninstall"
-check_root_privileges
-check_sysusr_home
-
+# utility function
+ensure_no_trailing_slash () {
+    if test ${1: -1} = /; then echo -n ${1:0: -1}
+    else echo -n $1
+    fi ; }
 
 #-----------------------------------------------------------------------------
+# source /etc/swiqlisp.rc & $SYSUSR_HOME/swiqlisp-utils
+
+if test -r /etc/swiqlisp.rc; then
+    source /etc/swiqlisp.rc
+else
+    echo "Error: /etc/swiqlisp.rc not found.  Aborting."
+    exit 1
+fi
+
+# remove trailing slash in SYSUSR_HOME (if any)
+SYSUSR_HOME=$(ensure_no_trailing_slash $SYSUSR_HOME)
+
+if test -r $SYSUSR_HOME/swiqlisp-utils; then
+    source $SYSUSR_HOME/swiqlisp-utils
+else
+    echo "Error: $SYSUSR_HOME/swiqlisp-utils not found.  Aborting."
+    exit 1
+fi
+
+# debugging
+if test $DEBUG = on; then
+    echo "debug: SYSUSR=$SYSUSR"
+    echo "debug: SYSUSR_HOME=$SYSUSR_HOME";
+fi;
+
+#-----------------------------------------------------------------------------
+# check command line args, root privs, & SYSUSR
+
+check_help "Usage: sudo ./swiqlisp-uninstall"
+check_root_privileges
+check_lisp_and_setup_accordingly # needed for value of SYSINIT_FILE
 
 if test -z "$(id -u $SYSUSR 2>/dev/null)"; then
     # no SYSUSR
@@ -42,16 +72,18 @@ that the value of SYSUSR has changed.  Please check ./swiqlisp.rc."
     exit 1;
 fi
 
+#-----------------------------------------------------------------------------
+# get confirmation before proceeding
+
 y-or-n-with-default-answer "Uninstall site-wide Quicklisp?  Confirm" n
 
 if test "$ans" = "y" -o "$ans" = "Y"; then
-    rm -f /etc/swiqlisp.rc /usr/bin/swiqlisp /usr/sbin/swiqlisp-stanza
+    rm -f /etc/swiqlisp.rc /usr/bin/swiqlisp
     userdel --remove $SYSUSR
     sleep 1
     echo "Sytem user $SYSUSR with home directory $SYSUSR_HOME removed."
     echo "swiQlisp successfully uninstalled."
-    # run swiqlisp-stanza
-    source swiqlisp-stanza
+    add_remove_swiqlisp_stanza
 else
     echo "Uninstallation operation aborted."
 fi

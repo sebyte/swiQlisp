@@ -27,9 +27,9 @@ y-or-n-with-default-answer () {
     # $1 = question, $2 = optional default answer (y or n)
     if test -z "$2" -o "$2" = "y" -o "$2" = "Y"; then default=y; fi
     if test "$default" = "y"; then
-	prompt_string="[Y/n]"
+        prompt_string="[Y/n]"
     else
-	default=n; prompt_string="[y/N]"
+        default=n; prompt_string="[y/N]"
     fi
 
     read -p "$1 $prompt_string? " ans
@@ -37,46 +37,81 @@ y-or-n-with-default-answer () {
     if test -z "$ans"; then ans=$default; fi; }
 
 check_help () {
-    if test "$1" = "-h" -o "$1" = "--help"; then
-	echo "$1"; exit 0;
-    fi; }
+    if test "$1" = "-h" -o "$1" = "--help"; then echo "$1"; exit 0; fi; }
 
 check_root_privileges () {
-    if test $(id -u) -ne 0; then
-	echo "Root privileges required."
-	exit 1
-    fi; }
-
-# ensure_trailing_slash () {
-#     if test ${1: -1} = /; then echo -n $1
-#     else echo -n $1/
-#     fi ; }
+    if test $(id -u) -ne 0; then echo "Root privileges required."; exit 1; fi; }
 
 check_lisp_and_setup_accordingly () {
     # this function is used at installation time (when implementation files are
     # found under ./) AND at installation time (when they are found under
     # $SYSUSR_HOME)
     if test $(basename $0) = "swiqlisp-install"; then
-	implementation_files=.
+        implementation_files=.
     else
-	implementation_files=$SYSUSR_HOME
+        implementation_files=$SYSUSR_HOME
     fi
 
     if test ! -x "$LISP"; then
-	echo "$LISP not found in filesystem. Aborting. (Tip: use absolute paths)."
-	exit 1
+        echo "$LISP not found in filesystem. Aborting. (Tip: use absolute paths)."
+        exit 1
     fi
     # set implementation specific values
     case $LISP in
-	sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
-	    source $implementation_files/swiqlisp-sbcl ;;
+        sbcl|/bin/sbcl|/usr/bin/sbcl|/usr/local/bin/sbcl)
+            source $implementation_files/swiqlisp-sbcl ;;
         # add other lisps here
-	*)
-	    echo "Unknown lisp implementation: $LISP. Aborting."
-	    exit 1 ;;
+        *)
+            echo "Unknown lisp implementation: $LISP. Aborting."
+            exit 1 ;;
     esac
     # debugging
     if test $DEBUG = on; then
-	echo "debug: LISP=$LISP"
-	echo "debug: SYSINIT_FILE=$SYSINIT_FILE"
+        echo "debug: LISP=$LISP"
+        echo "debug: SYSINIT_FILE=$SYSINIT_FILE"
     fi ; }
+
+add_remove_swiqlisp_stanza () {
+    init_file_stanza_begin=';;; swiQlisp stanza begin - DO NOT EDIT this comment'
+    init_file_stanza_end=';;; swiQlisp stanza end - DO NOT EDIT this comment'
+    # line numbers (SYSINIT_FILE defined in swiqlisp-<impl>)
+    existing_stanza_begin=$(grep -xne "$init_file_stanza_begin" $SYSINIT_FILE |\
+                        cut -d: -f1)
+    existing_stanza_end=$(grep -xne "$init_file_stanza_end" $SYSINIT_FILE |\
+                      cut -d: -f1)
+
+    if test -n "$existing_stanza_begin" -a -n "$existing_stanza_end"; then
+        # swiqlisp stanza exists
+        y-or-n-with-default-answer \
+            "Your system-wide init file ($SYSINIT_FILE) includes the swiQlisp stanza:
+
+$INIT_FILE_STANZA_FOR_DISPLAY
+
+Would you like to remove it" n
+        if test "$ans" = "y" -o "$ans" = "Y"; then
+            sed_script="${existing_stanza_begin},${existing_stanza_end}d"
+            sed -i $sed_script $SYSINIT_FILE
+            echo "swiQlisp stanza removed."
+        else
+            echo "System-wide init file ($SYSINIT_FILE) untouched."
+        fi
+    else
+        # no swiqlisp stanza exists
+        y-or-n-with-default-answer \
+            "Would you like to append the following stanza:
+
+$INIT_FILE_STANZA_FOR_DISPLAY
+
+to the system-wide init file ($SYSINIT_FILE)" y
+
+        if test "$ans" = "y" -o "$ans" = "Y"; then
+            echo "
+$init_file_stanza_begin
+$INIT_FILE_STANZA
+$init_file_stanza_end
+" >> $SYSINIT_FILE
+            echo "swiQlisp stanza added."
+        else
+            echo "System-wide init file ($SYSINIT_FILE) untouched."
+        fi
+    fi; }

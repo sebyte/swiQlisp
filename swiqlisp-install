@@ -134,8 +134,7 @@ chown -R $SYSUSR:nogroup $SYSUSR_HOME
 
 cp -f swiqlisp.rc     /etc
 cp -f swiqlisp        /usr/bin
-cp -f swiqlisp-stanza /usr/sbin
-chmod a+x swiqlisp swiqlisp-stanza
+chmod a+x swiqlisp
 
 #-----------------------------------------------------------------------------
 # Install Quicklisp
@@ -167,8 +166,8 @@ else # success
 fi
 
 #-----------------------------------------------------------------------------
-# add/remove the swiQlisp stanza
-swiqlisp-stanza
+# maybe add swiQlisp stanza to the lisp system init file
+add_remove_swiqlisp_stanza
 
 #-----------------------------------------------------------------------------
 echo "swiQlisp successfully installed."
