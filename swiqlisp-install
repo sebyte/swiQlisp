@@ -166,8 +166,10 @@ else # success
 fi
 
 #-----------------------------------------------------------------------------
-# maybe add swiQlisp stanza to the lisp system init file
+# final steps
 add_remove_swiqlisp_stanza
+sleep 1
+slime_helper_message
 
 #-----------------------------------------------------------------------------
 echo "swiQlisp successfully installed."

@@ -99,28 +99,25 @@ $INIT_FILE_STANZA
 $init_file_stanza_end
 " >> $SYSINIT_FILE
             echo "swiQlisp stanza added."
-            exit 0
         else
             echo "System-wide init file ($SYSINIT_FILE) untouched."
-            exit 0
         fi
-    fi
 
     # ----------------------------------------------------------------------
     # uninstall & swiqlisp stanza exists
-    if test $(basename $0) = "swiqlisp-uninstall" -a \
+    elif
+        test $(basename $0) = "swiqlisp-uninstall" -a \
             -n "$existing_stanza_begin" -a \
             -n "$existing_stanza_end"; then
         # no questions asked
         sed_script="${existing_stanza_begin},${existing_stanza_end}d"
         sed -i $sed_script $SYSINIT_FILE
         echo "swiQlisp stanza removed from system-wide init file ($SYSINIT_FILE)."
-        exit 0
-    fi
 
     # ----------------------------------------------------------------------
     # install & swiqlisp stanza already exists (this shouldn't really happen)
-    if test $(basename $0) = "swiqlisp-install" -a \
+    elif
+        test $(basename $0) = "swiqlisp-install" -a \
             -n "$existing_stanza_begin" -a \
             -n "$existing_stanza_end"; then
         y-or-n-with-default-answer \
@@ -136,4 +133,18 @@ Would you like to remove it" n
         else
             echo "System-wide init file ($SYSINIT_FILE) untouched."
         fi
+
     fi; }
+
+slime_helper_message () {
+    echo \
+"Install package swank:
+
+ $ sudo swiqlisp install swank
+
+and users can configure Emacs to use swiQlisp SLIME by adding the line:
+
+ (load (expand-file-name \"~$SYSUSR/swiqlisp-slime-helper.el\"))
+
+to their ~/.emacs init file.
+"; }
