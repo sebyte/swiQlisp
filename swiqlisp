@@ -124,6 +124,7 @@ LISP_COMMAND='$SU -c \
 
 LISP_ERROR_MSG='\\nA Lisp error occurred.  See:\\n\\n $ERRLOG\\n\\nfor more information.'
 
+# queries
 list () {
     EVAL1="'(list-installed-$1)'"
     EVAL2="'(list-available-$1)'"
@@ -149,6 +150,13 @@ system_apropos () {
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND" ; }
 
+versions () {
+    EVAL="'(versions)'"
+    COMMANDS="$eval $EVAL $quit"
+    [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
+    eval "$LISP_COMMAND" ; }
+
+# action tools
 additional_systems_report () {
     EVAL="'(additional-systems-report)'"
     COMMANDS="$eval $EVAL $quit"
@@ -161,6 +169,7 @@ removed_systems_report () {
     [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
     eval "$LISP_COMMAND" ; }
 
+# actions
 install () {
     check_root_privileges
     EVAL="'(install-$1 \"$OBJECT\" $2)'"
@@ -219,6 +228,19 @@ update_systems () {
         rm $ERRLOG # because it's empty
     fi ; }
 
+downdate_systems () {
+    check_root_privileges
+    EVAL="'(downdate-systems \"$OBJECT\")'"
+    ERRLOG="$LOG_DIR/downdate-systems_error.log"
+    COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
+    [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
+    eval "$LISP_COMMAND"
+    if [ -s $ERRLOG ]; then
+        eval echo -e $LISP_ERROR_MSG
+    else # success, so
+        rm $ERRLOG # because it's empty
+    fi ; }
+
 #-----------------------------------------------------------------------------
 # top level
 
@@ -231,6 +253,7 @@ case $ACTION in
              release-systems) list_release_systems              ;; # test on xcvb
  depends|system-dependencies) list_dependencies                 ;;
               system-apropos) system_apropos                    ;;
+                    versions) versions                          ;;
      # actions
       install|install-system) install              system       ;;
           install-no-compile) install              system    t  ;; # [2]
@@ -239,6 +262,7 @@ case $ACTION in
 # install-release-no-compile) install              release   t  ;;
 #          uninstall-release) uninstall            release      ;;
               update-systems) update_systems                    ;; # no OBJECT req'd
+            downdate-systems) downdate_systems                  ;; # dist file OBJECT
                  self-update) self_update                       ;; # no OBJECT req'd
      # maintenance
         refresh-system-links) refresh_system_links              ;; # no OBJECT req'd

@@ -36,8 +36,9 @@ Queries implemented so far:
  releases
  systems
  release-systems
- depends
  system-apropos
+ depends
+ versions
 
 Actions implemented so far:
 
@@ -45,6 +46,7 @@ Actions implemented so far:
  install-no-compile
  uninstall
  update-systems
+ downdate-systems
  self-update
  refresh-system-links
 

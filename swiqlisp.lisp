@@ -198,6 +198,10 @@
             (3col-write available-releases :reader #'name)))
         (all-dists)))
 
+;; dist versions
+(defun versions ()
+  (let ((versions (available-versions (dist "quicklisp"))))
+    (format t "~%~{ ~a~%~}" (mapcar #'cdr (reverse versions)))))
 
 
 ;;; ============================================================================
@@ -235,8 +239,10 @@
 
 
 ;;; ============================================================================
-;;; update functions
+;;; {up|down}date functions
 
 (defun self-update () (ql:update-client))
 
 (defun update-systems () (ql:update-all-dists))
+
+(defun downdate-systems (dist) (install-dist dist :replace t))
