@@ -44,10 +44,10 @@ check_lisp_and_setup_accordingly
 # remove trailing slash in SYSUSR_HOME (if any)
 SYSUSR_HOME=$(ensure_no_trailing_slash $SYSUSR_HOME)
 
-# check that SYSUSR_HOME parent directory exists
+# check that SYSUSR_HOME parent directory exists and create it if necessary.
+# SYSUSR_HOME itself is created by the adduser command below.
 if test ! -d $(dirname $SYSUSR_HOME); then
-    echo "Error: $(dirname $SYSUSR_HOME) not found."
-    exit 1
+    mkdir -p $(dirname $SYSUSR_HOME)
 fi
 
 # debugging
