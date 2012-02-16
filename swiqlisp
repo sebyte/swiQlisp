@@ -65,7 +65,7 @@ fi;
 TMP_DIR=$SYSUSR_HOME/tmp; LOG_DIR=$TMP_DIR/log; ACTION=$1; OBJECT=$2
 
 usage="Usage: [sudo] swiqlisp <query-or-action> [<object>]"
-check_help "$usage"
+check_help $1 "$usage"
 if test \( "${ACTION:0:7}" = "install" -o "${ACTION:0:6}" = "remove" \) -a \
         -z "$OBJECT"; then
     echo "$usage"; exit 0

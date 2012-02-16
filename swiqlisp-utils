@@ -37,7 +37,7 @@ y-or-n-with-default-answer () {
     if test -z "$ans"; then ans=$default; fi; }
 
 check_help () {
-    if test "$1" = "-h" -o "$1" = "--help"; then echo "$1"; exit 0; fi; }
+    if test "$1" = "-h" -o "$1" = "--help"; then echo "$2"; exit 0; fi; }
 
 check_root_privileges () {
     if test $(id -u) -ne 0; then echo "Root privileges required."; exit 1; fi; }
