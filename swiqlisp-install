@@ -37,7 +37,7 @@ ensure_no_trailing_slash () {
 
 source swiqlisp.rc
 source swiqlisp-utils
-check_help "Usage: sudo ./swiqlisp-install"
+check_help $1 "Usage: sudo ./swiqlisp-install"
 check_root_privileges
 check_lisp_and_setup_accordingly
 

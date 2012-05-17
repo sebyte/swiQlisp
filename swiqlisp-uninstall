@@ -59,7 +59,7 @@ fi;
 #-----------------------------------------------------------------------------
 # check command line args, root privs, & SYSUSR
 
-check_help "Usage: sudo ./swiqlisp-uninstall"
+check_help $1 "Usage: sudo ./swiqlisp-uninstall"
 check_root_privileges
 check_lisp_and_setup_accordingly # needed for value of SYSINIT_FILE
 
