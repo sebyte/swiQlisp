@@ -226,7 +226,12 @@ update_systems () {
         eval echo -e $LISP_ERROR_MSG
     else # success, so
         rm $ERRLOG # because it's empty
-    fi ; }
+    fi
+    rotate_installed_systems_files
+    remove_links_to_removed_system_files
+    removed_systems_report
+    write_links_to_additional_system_files
+    additional_systems_report ; }
 
 downdate_systems () {
     check_root_privileges
@@ -239,7 +244,12 @@ downdate_systems () {
         eval echo -e $LISP_ERROR_MSG
     else # success, so
         rm $ERRLOG # because it's empty
-    fi ; }
+    fi
+    rotate_installed_systems_files
+    remove_links_to_removed_system_files
+    removed_systems_report
+    write_links_to_additional_system_files
+    additional_systems_report ; }
 
 #-----------------------------------------------------------------------------
 # top level
