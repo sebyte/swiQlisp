@@ -98,7 +98,7 @@ $init_file_stanza_begin
 $INIT_FILE_STANZA
 $init_file_stanza_end
 " >> $SYSINIT_FILE
-            echo "swiQlisp stanza added."
+            echo -e "swiQlisp stanza added.\n"
         else
             echo "System-wide init file ($SYSINIT_FILE) untouched."
         fi
@@ -138,7 +138,7 @@ Would you like to remove it" n
 
 slime_helper_message () {
     echo \
-"Install package swank:
+"Useful tip - install package swank:
 
  $ sudo swiqlisp install swank
 
