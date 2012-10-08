@@ -130,11 +130,11 @@ cp -f \
 chown -R $SYSUSR:nogroup $SYSUSR_HOME
 
 #-----------------------------------------------------------------------------
-# /etc, /usr/bin & /usr/sbin
+# /etc, /usr/bin
 
 cp -f swiqlisp.rc     /etc
 cp -f swiqlisp        /usr/bin
-chmod a+x swiqlisp
+chmod a+x /usr/bin/swiqlisp # should already be executable, but just in case...
 
 #-----------------------------------------------------------------------------
 # Install Quicklisp
