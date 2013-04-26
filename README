@@ -1,4 +1,3 @@
-
 			 swiQlisp — site-wide Quicklisp
 			 ==============================
 
@@ -53,7 +52,7 @@ Actions implemented so far:
 Default lisp: sbcl
 
 
-swiQlisp SLIME USAGE
+swiQlisp SLIME usage
 --------------------
 
 'swank' is the name of the Common Lisp component of SLIME (the Superior Lisp
