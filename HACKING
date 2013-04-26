@@ -1,0 +1,33 @@
+There's no facility to run swiQlisp from the source directory, i.e. here.
+
+Implementing such a facility is non-trivial since it means the main script
+(swiqlisp) must be able to detect whether it was run as ./swiqlisp or as
+/bin/swiqlisp and then alter it's behaviour accordingly.
+
+For now therefore, whenever you change something here, the simplest way to test
+your change is to copy the altered source file to its installation location
+(overwriting the existing file in the process).
+
+You can of course run the uninstallation script (swiqlisp-uninstall) followed by
+the installation script (swiqlisp-install) each time you change something (and
+this is obviously the way to test either or both of these two scripts) but the
+uninstallation script removes ~swiqlisp/ and everything under it, including
+Quicklisp itself and all installed systems, so this may not be what you want.
+
+Alternatively, you may find it easier to edit certain installed files in-situ
+and then copy them here if/when you want to permanently incorporate your changes
+in the source.  This usually means not having to issue so many copy commands but
+installed files aren't under version control so that's something to bear in
+mind.
+
+If all you want to do is turn debugging on or off, it's definitely simplest to
+edit /etc/swiqlisp.rc in-situ rather than here.
+
+To play with a SLIME-enabled swiQlisp SBCL:
+
+ $ cd ~swiqlisp
+ $ su -c "sbcl --no-sysinit --no-userinit --no-inform --load quicklisp/setup --load swiqlisp --eval '(asdf:load-system :swank)' --eval '(swank:create-server :port 50000)'" swiqlisp
+
+You can then connect like so:
+
+ (slime-connect "127.0.0.1" "50000")
