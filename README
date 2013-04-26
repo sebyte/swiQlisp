@@ -80,6 +80,9 @@ Finally, restart Emacs and you should be good to go.
 TODO
 ----
 
+ • Improve install script so that it leaves an existing Quicklisp untouched but
+   updates all swiQlisp files.
+
  • Fix non-privileged queries.
 
  • Work out precisely why, with a fresh swiqlisp, 'install' hunchentoot says
