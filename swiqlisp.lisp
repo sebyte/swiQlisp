@@ -1,4 +1,4 @@
-;;; swiqlisp.lisp
+;;; ~/github/sebyte/swiQlisp/swiqlisp.lisp
 
 ;;; Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
 ;;;
@@ -246,3 +246,9 @@
 (defun update-systems () (ql:update-all-dists))
 
 (defun downdate-systems (dist) (install-dist dist :replace t))
+
+
+;;; ============================================================================
+;;; misc
+
+(defun delete-old-systems () (mapc #'ql-dist::clean (all-dists)))

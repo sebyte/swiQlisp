@@ -122,7 +122,7 @@ LISP_COMMAND='$SU -c \
         $load $SYSUSR_HOME/swiqlisp.lisp \
         $COMMANDS" $SYSUSR'
 
-LISP_ERROR_MSG='\\nA Lisp error occurred.  See:\\n\\n $ERRLOG\\n\\nfor more information.'
+LISP_ERROR_MSG='\\nLisp output on stderr: \\n\\n $ERRLOG\\n'
 
 # queries
 list () {
@@ -251,6 +251,19 @@ downdate_systems () {
     write_links_to_additional_system_files
     additional_systems_report ; }
 
+delete_old_systems () {
+    check_root_privileges
+    EVAL="'(delete-old-systems)'"
+    ERRLOG="$LOG_DIR/delete-old-systems.log"
+    COMMANDS="$eval $EVAL $quit 2>$ERRLOG"
+    [ $DEBUG = on ] && eval echo "debug: $LISP_COMMAND"
+    eval "$LISP_COMMAND"
+    if [ -s $ERRLOG ]; then
+        eval echo -e $LISP_ERROR_MSG
+    else # success, so
+        rm $ERRLOG # because it's empty
+    fi ; }
+
 #-----------------------------------------------------------------------------
 # top level
 
@@ -275,6 +288,7 @@ case $ACTION in
             downdate-systems) downdate_systems                  ;; # dist file OBJECT
                  self-update) self_update                       ;; # no OBJECT req'd
      # maintenance
+          delete-old-systems) delete_old_systems                ;; # no OBJECT req'd
         refresh-system-links) refresh_system_links              ;; # no OBJECT req'd
 
                            *) echo "Unknown action.  Aborting." && exit 1 ;;
