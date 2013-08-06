@@ -19,17 +19,17 @@ installing swiQlisp.
 
 ## Installation
 
-```bash
+```
 $ sudo ./swiqlisp-install
 ```
 
 ## Usage
 
-```bash
+```
 $ swiqlisp -h
 [sudo] swiqlisp <query-or-action> [<object>] [<lisp>]
 
-Queries don\'t require root privileges. Actions do.
+Queries don't require root privileges. Actions do.
 
 Queries implemented so far:
  releases
@@ -48,7 +48,7 @@ Actions implemented so far:
  self-update
  refresh-system-links
 
-Lisp defaults to \'sbcl\', currently the only lisp supported.
+Lisp defaults to 'sbcl', currently the only lisp supported.
 ```
 ## swiQlisp SLIME usage
 
@@ -58,7 +58,7 @@ this reason, SLIME is called 'swank' in Quicklisp (since Quicklisp is a Common
 Lisp library manager, not an Emacs Lisp library manager) so first of all you
 must install the Quicklisp package 'swank':
 
-```bash
+```
 $ sudo swiqlisp install swank
 ```
 Do not install the package 'quicklisp-slime-helper'.  It assumes Quicklisp is
@@ -66,7 +66,7 @@ installed under your home directory and will not work as expected.
 
 Then add the following line:
 
-```elisp
+```
  (load (expand-file-name "~swiqlisp/swiqlisp-slime-helper.el"))
 ```
 to your ~/.emacs init file (and remove any existing Quicklisp SLIME
@@ -79,7 +79,7 @@ Finally, restart Emacs and you should be good to go.
 Installation includes an uninstallation script `/usr/bin/swiqlisp-uninstall` so
 to uninstall swiQlisp, simply run the script:
 
-```bash
+```
 $ swiqlisp-uninstall
 ```
 If you confirm your decision, swiQlisp and all installed systems will be
