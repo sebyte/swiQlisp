@@ -63,7 +63,31 @@ fi;
 
 TMP_DIR=$SYSUSR_HOME/tmp; LOG_DIR=$TMP_DIR/log; ACTION=$1; OBJECT=$2
 
-usage="Usage: [sudo] swiqlisp <query-or-action> [<object>]"
+usage="[sudo] swiqlisp <query-or-action> [<object>] [<lisp>]
+
+Queries don't require root privileges. Actions do.
+
+Queries implemented so far:
+
+ releases
+ systems
+ release-systems
+ system-apropos
+ depends
+ versions
+
+Actions implemented so far:
+
+ install
+ install-no-compile
+ uninstall
+ update-systems
+ downdate-systems
+ self-update
+ refresh-system-links
+
+Lisp defaults to 'sbcl', currently the only lisp supported.
+"
 check_help $1 "$usage"
 if test \( "${ACTION:0:7}" = "install" -o "${ACTION:0:6}" = "remove" \) -a \
         -z "$OBJECT"; then

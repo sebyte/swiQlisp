@@ -26,9 +26,10 @@ $ sudo ./swiqlisp-install
 ## Usage
 
 ```bash
-$ [sudo] swiqlisp <query-or-action> [<system>] [<lisp>]
-```
-Queries don't require root privileges.  Actions do.
+$ swiqlisp -h
+[sudo] swiqlisp <query-or-action> [<object>] [<lisp>]
+
+Queries don't require root privileges. Actions do.
 
 Queries implemented so far:
 
@@ -49,8 +50,8 @@ Actions implemented so far:
  self-update
  refresh-system-links
 
-Default lisp: sbcl
-
+Lisp defaults to 'sbcl', currently the only lisp supported.
+```
 ## swiQlisp SLIME usage
 
 'swank' is the name of the Common Lisp component of SLIME (the Superior Lisp
