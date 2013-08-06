@@ -52,16 +52,16 @@ Lisp defaults to 'sbcl', currently the only lisp supported.
 ```
 ## swiQlisp SLIME usage
 
-'swank' is the name of the Common Lisp component of SLIME (the Superior Lisp
+`swank` is the name of the Common Lisp component of SLIME (the Superior Lisp
 Interaction Mode for Emacs) the rest of which is written in Emacs Lisp.  For
-this reason, SLIME is called 'swank' in Quicklisp (since Quicklisp is a Common
+this reason, SLIME is called `swank` in Quicklisp (since Quicklisp is a Common
 Lisp library manager, not an Emacs Lisp library manager) so first of all you
-must install the Quicklisp package 'swank':
+must install the Quicklisp package`swank`:
 
 ```
 $ sudo swiqlisp install swank
 ```
-Do not install the package 'quicklisp-slime-helper'.  It assumes Quicklisp is
+Do not install the package `quicklisp-slime-helper`.  It assumes Quicklisp is
 installed under your home directory and will not work as expected.
 
 Then add the following line:
@@ -69,7 +69,7 @@ Then add the following line:
 ```
  (load (expand-file-name "~swiqlisp/swiqlisp-slime-helper.el"))
 ```
-to your ~/.emacs init file (and remove any existing Quicklisp SLIME
+to your `~/.emacs` init file (and remove any existing Quicklisp SLIME
 configuration).
 
 Finally, restart Emacs and you should be good to go.
@@ -82,8 +82,9 @@ to uninstall swiQlisp, simply run the script:
 ```
 $ swiqlisp-uninstall
 ```
-If you confirm your decision, swiQlisp and all installed systems will be
-removed and the unprivileged system user (swiqlisp) will be deleted.
+If you confirm your decision, swiQlisp and all Quicklisp systems installed by
+swiQlisp will be removed and the unprivileged system user `swiqlisp` will be
+deleted.
 
 ## TODO
 
