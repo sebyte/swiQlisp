@@ -1,5 +1,3 @@
-;;; swiqlisp-slime-helper.el
-
 ;;; Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
 ;;;
 ;;; This file is part of swiQlisp — site-wide Quicklisp.

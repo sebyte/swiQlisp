@@ -1,5 +1,3 @@
-# -*- mode:shell-script; page-delimiter: "^#" -*-
-
 # Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
 #
 # This file is part of swiQlisp — site-wide Quicklisp.
@@ -20,7 +18,7 @@
 #
 #  SBCL-specific settings.
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # invocation string
 if test $LISP_DEBUGGER = on; then
     INVOC="$LISP --disable-ldb --lose-on-corruption --noinform \
@@ -32,7 +30,7 @@ fi
 load=--load; eval=--eval; quit=--quit
 
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # init file stanza
 SYSINIT_FILE=/etc/sbclrc
 
@@ -44,3 +42,8 @@ INIT_FILE_STANZA="(require 'asdf)
 INIT_FILE_STANZA_FOR_DISPLAY=" (require 'asdf)
  (push #p\"$SYSUSR_HOME/installed-systems/\"
        asdf:*central-registry*)"
+
+# Local Variables:
+# mode:shell-script
+# page-delimiter: "^#[=-]+$"
+# End:

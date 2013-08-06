@@ -1,5 +1,4 @@
 #!/bin/bash
-# -*- page-delimiter: "^#" -*-
 
 # Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
 #
@@ -26,14 +25,14 @@
 #  instance.
 
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # utility function
 ensure_no_trailing_slash () {
     if test ${1: -1} = /; then echo -n ${1:0: -1}
     else echo -n $1
     fi ; }
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # source /etc/swiqlisp.rc & $SYSUSR_HOME/swiqlisp-utils
 
 if test -r /etc/swiqlisp.rc; then
@@ -59,7 +58,7 @@ if test $DEBUG = on; then
     echo "debug: SYSUSR_HOME=$SYSUSR_HOME";
 fi;
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # variables, sanity checks on command line args, lisp check/setup
 
 TMP_DIR=$SYSUSR_HOME/tmp; LOG_DIR=$TMP_DIR/log; ACTION=$1; OBJECT=$2
@@ -73,7 +72,7 @@ fi
 
 check_lisp_and_setup_accordingly
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # shell functions
 
 rotate_installed_systems_files () {
@@ -114,7 +113,7 @@ refresh_system_links () {
     done; }
 
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # lisp command & functions which use it
 
 LISP_COMMAND='$SU -c \
@@ -264,7 +263,7 @@ delete_old_systems () {
         rm $ERRLOG # because it's empty
     fi ; }
 
-#-----------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 # top level
 
 case $ACTION in
@@ -300,3 +299,8 @@ esac
 
 # [2] Some systems require compilation for their dependencies to be handled
 #     correctly
+
+
+# Local Variables:
+# page-delimiter: "^#[=-]+$"
+# End:

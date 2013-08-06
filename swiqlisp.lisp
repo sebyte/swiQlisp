@@ -1,5 +1,3 @@
-;;; ~/github/sebyte/swiQlisp/swiqlisp.lisp
-
 ;;; Copyright © 2011 Sebastian D. Tennant <sdt@sebyte.me>
 ;;;
 ;;; This file is part of swiQlisp — site-wide Quicklisp.
@@ -24,7 +22,6 @@
 
 (use-package "QL-DIST")
 
-
 ;;; ============================================================================
 ;;; utility functions
 
@@ -115,7 +112,6 @@
       ;; recurse
       (fetch-system-plus-dependencies component))))
 
-
 ;;; ============================================================================
 ;;; top level query functions
 
@@ -203,7 +199,6 @@
   (let ((versions (available-versions (dist "quicklisp"))))
     (format t "~%~{ ~a~%~}" (mapcar #'cdr (reverse versions)))))
 
-
 ;;; ============================================================================
 ;;; top level (un)installation functions
 
@@ -237,7 +232,6 @@
             (length newly-removed-systems))
     (3col-write newly-removed-systems :reader #'pathname-name)))
 
-
 ;;; ============================================================================
 ;;; {up|down}date functions
 
@@ -247,8 +241,11 @@
 
 (defun downdate-systems (dist) (install-dist dist :replace t))
 
-
 ;;; ============================================================================
 ;;; misc
 
 (defun delete-old-systems () (mapc #'ql-dist::clean (all-dists)))
+
+;;; Local Variables:
+;;; page-delimiter: ";;; [=-]+$"
+;;; End:
