@@ -1,4 +1,4 @@
-There's no facility to run swiQlisp from the source directory, i.e. here.
+There's no facility to run swiQlisp from the source directory, i.e. from here.
 
 Implementing such a facility is non-trivial since it means the main script
 (swiqlisp) must be able to detect whether it was run as ./swiqlisp or as
@@ -8,10 +8,10 @@ For now therefore, whenever you change something here, the simplest way to test
 your change is to copy the altered source file to its installation location
 (overwriting the existing file in the process).
 
-You can of course run the uninstallation script (swiqlisp-uninstall) followed by
-the installation script (swiqlisp-install) each time you change something (and
-this is obviously the way to test either or both of these two scripts) but the
-uninstallation script removes ~swiqlisp/ and everything under it, including
+You can of course run the uninstallation script (swiqlisp-uninstall) and then
+run the installation script (swiqlisp-install) each time you change something
+(and this is obviously the way to test either or both of these two scripts) but
+the uninstallation script removes the whole ~swiqlisp/ directory, including
 Quicklisp itself and all installed systems, so this may not be what you want.
 
 Alternatively, you may find it easier to edit certain installed files in-situ
