@@ -29,10 +29,9 @@ $ sudo ./swiqlisp-install
 $ swiqlisp -h
 [sudo] swiqlisp <query-or-action> [<object>] [<lisp>]
 
-Queries don't require root privileges. Actions do.
+Queries don\'t require root privileges. Actions do.
 
 Queries implemented so far:
-
  releases
  systems
  release-systems
@@ -41,7 +40,6 @@ Queries implemented so far:
  versions
 
 Actions implemented so far:
-
  install
  install-no-compile
  uninstall
@@ -50,7 +48,7 @@ Actions implemented so far:
  self-update
  refresh-system-links
 
-Lisp defaults to 'sbcl', currently the only lisp supported.
+Lisp defaults to \'sbcl\', currently the only lisp supported.
 ```
 ## swiQlisp SLIME usage
 
